@@ -1,0 +1,422 @@
+{
+  "info": {
+    "_postman_id": "e5f6a7b8-9c0d-4e1f-b234-5c6d7e8f9a0b",
+    "name": "Lecture 4 - Cart",
+    "description": "# E-commerce Training API — Lecture 4: Cart\n\nThis collection covers the **Cart module**: a per-logged-in-user cart, persisted server-side (one `Cart` document per `User`).\n\n## How to use this collection\n1. Set the `baseUrl` collection variable if your backend isn't running at the default `http://localhost:5000/api` (Collection → Variables tab).\n2. Make sure the backend is running (`npm run dev`) and seeded (`npm run seed` — this creates the `user1@test.com` account and at least 14 sample products, whose ids you'll need for `productId`).\n3. Run **Setup → Login (get token)** once. Its Tests tab automatically saves the returned JWT into the `{{token}}` collection variable, which every request in this collection sends as `Authorization: Bearer {{token}}` — **every cart route requires being logged in**, there is no public/guest cart on the backend.\n4. Run **Setup → Grab a Product Id** once (or copy an `id` from the Lecture 2 - Products collection) to populate the `{{productId}}` variable used by **Add Item**, **Update Item Quantity**, and **Remove Item**.\n\n## Response shape\nEvery endpoint in this API replies with one of two shapes:\n\n```jsonc\n// success\n{ \"success\": true, \"data\": { ... } }\n\n// error\n{ \"success\": false, \"message\": \"Human readable message\", \"errors\": [] }\n```\n\n`errors` is populated (an array of `{ field, message }`) when the failure came from input validation; otherwise it's an empty array.\n\n## How the cart is shaped\nEvery cart response returns the **whole cart**, already populated and totalled — there's no separate \"get totals\" endpoint:\n\n```jsonc\n{\n  \"success\": true,\n  \"data\": {\n    \"cart\": {\n      \"id\": \"...\",\n      \"items\": [\n        {\n          \"product\": { \"id\": \"...\", \"name\": \"...\", \"price\": 79.99, \"image\": \"...\", \"countInStock\": 45, ... },\n          \"quantity\": 2,\n          \"subtotal\": 159.98\n        }\n      ],\n      \"totalItems\": 2,\n      \"totalPrice\": 159.98\n    }\n  }\n}\n```\n\n`subtotal`/`totalPrice` are always computed from each product's **current** price at request time (not a price snapshot from when the item was added), so a price change on the admin side is reflected immediately.\n\n## Note\nThis collection only covers the Cart. For Register/Login/Me/Logout see **Lecture 1 - Authentication**; for browsing/searching/filtering products (needed to get a `productId`) see **Lecture 2 - Products**.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Login (get token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user1@test.com\",\n  \"password\": \"User1123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Logs in as a normal seeded user and grabs a JWT — every request in this collection needs one, since the cart always belongs to whoever is logged in (there is no guest/anonymous cart on the backend).\n\n**Run this once before touching any other request in this collection.** Its Tests tab automatically copies the token from the response into the `{{token}}` collection variable, so every request below sends `Authorization: Bearer {{token}}` for you.\n\nThis is the same `/api/auth/login` endpoint covered in the Lecture 1 - Authentication collection; it's duplicated here (with a regular user's credentials pre-filled) so this Cart collection works standalone.\n\n**Good to know:** an admin account works here too — the cart isn't role-restricted, it's just tied to `req.user`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+                  "    console.log(\"Token saved:\", jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Success - Logged in",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user1@test.com\",\n  \"password\": \"User1123\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d2\",\n      \"name\": \"Test User One\",\n      \"email\": \"user1@test.com\",\n      \"role\": \"user\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NGYxYTJiM2M0ZDVlNmY3YThiOWMwZDIiLCJyb2xlIjoidXNlciIsImlhdCI6MTcwNTMxMjIwMCwiZXhwIjoxNzA1OTE3MDAwfQ.dGhpc19pc19hX2Zha2Vfc2lnbmF0dXJlX2V4YW1wbGU\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Grab a Product Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?limit=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
+              "query": [{ "key": "limit", "value": "1" }]
+            },
+            "description": "Convenience request (from the Lecture 2 - Products collection) that returns just one product, so you have a real `id` to use as `productId` in **Add Item**, **Update Item Quantity**, and **Remove Item** below.\n\nIts Tests tab automatically copies that id into the `{{productId}}` collection variable. Run it once after seeding, or whenever you want to switch which product you're adding to the cart."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    const product = jsonData.data.products[0];",
+                  "    if (product) {",
+                  "        pm.collectionVariables.set(\"productId\", product.id);",
+                  "        console.log(\"productId saved:\", product.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Lecture 4 - Cart",
+      "item": [
+        {
+          "name": "Get My Cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart"]
+            },
+            "description": "Returns the logged-in user's cart, with each item's product fully populated and per-item/cart totals computed. This is what a `/cart` page would call on load.\n\n**Good to know:**\n- **Requires login** — `401` without a valid `{{token}}`.\n- If the user has never added anything, you still get a `200` back with an empty cart (`items: []`, `totalItems: 0`, `totalPrice: 0`) — a cart is created lazily on first use, not at registration.\n- If a product in the cart was later deleted by an admin, it's silently dropped from the response rather than causing an error."
+          },
+          "response": [
+            {
+              "name": "Success - Cart with items",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+                "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"cart\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c2a1\",\n      \"items\": [\n        {\n          \"product\": {\n            \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n            \"name\": \"Wireless Bluetooth Headphones\",\n            \"slug\": \"wireless-bluetooth-headphones\",\n            \"price\": 79.99,\n            \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n            \"category\": \"Electronics\",\n            \"countInStock\": 45\n          },\n          \"quantity\": 2,\n          \"subtotal\": 159.98\n        }\n      ],\n      \"totalItems\": 2,\n      \"totalPrice\": 159.98\n    }\n  }\n}"
+            },
+            {
+              "name": "Success - Empty cart",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+                "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"cart\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c2a2\",\n      \"items\": [],\n      \"totalItems\": 0,\n      \"totalPrice\": 0\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Not logged in",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Not authorized, no token provided\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "items"]
+            },
+            "description": "Adds a product to the logged-in user's cart, or increases its quantity if it's already in there. This is what a product card / product details page's \"Add to Cart\" button submits to.\n\n**Body:**\n- `productId` (required) — a real product id, e.g. from **Setup → Grab a Product Id** or the Lecture 2 - Products collection\n- `quantity` (optional, defaults to `1`, must be ≥ 1)\n\n**What you get back:** the whole updated cart (same shape as **Get My Cart**), not just the added item — convenient for immediately re-rendering a cart badge/dropdown.\n\n**Good to know:**\n- Adding a `productId` that's **already** in the cart doesn't create a duplicate line — it **adds** the new `quantity` onto the existing one (send `quantity: 2` twice for the same product and you'll end up with `quantity: 4`).\n- Requires login; `401` without a token.\n- A `productId` that isn't a real product returns `404`.\n- An invalid/malformed `productId`, or `quantity` less than 1, returns `400` with a per-field `errors` array."
+          },
+          "response": [
+            {
+              "name": "Success - Item added",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": { "raw": "{{baseUrl}}/cart/items", "host": ["{{baseUrl}}"], "path": ["cart", "items"] },
+                "body": { "mode": "raw", "raw": "{\n  \"productId\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n  \"quantity\": 2\n}" }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"cart\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c2a1\",\n      \"items\": [\n        {\n          \"product\": {\n            \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n            \"name\": \"Wireless Bluetooth Headphones\",\n            \"slug\": \"wireless-bluetooth-headphones\",\n            \"price\": 79.99,\n            \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n            \"category\": \"Electronics\",\n            \"countInStock\": 45\n          },\n          \"quantity\": 2,\n          \"subtotal\": 159.98\n        }\n      ],\n      \"totalItems\": 2,\n      \"totalPrice\": 159.98\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Product not found",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": { "raw": "{{baseUrl}}/cart/items", "host": ["{{baseUrl}}"], "path": ["cart", "items"] },
+                "body": { "mode": "raw", "raw": "{\n  \"productId\": \"64f1a2b3c4d5e6f7a8b9c9c9\",\n  \"quantity\": 1\n}" }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Product not found\",\n  \"errors\": []\n}"
+            },
+            {
+              "name": "Error - Validation failed",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": { "raw": "{{baseUrl}}/cart/items", "host": ["{{baseUrl}}"], "path": ["cart", "items"] },
+                "body": { "mode": "raw", "raw": "{\n  \"productId\": \"not-a-real-id\",\n  \"quantity\": 0\n}" }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"productId\",\n      \"message\": \"productId must be a valid id\"\n    },\n    {\n      \"field\": \"quantity\",\n      \"message\": \"Quantity must be at least 1\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Item Quantity",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/items/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "items", "{{productId}}"]
+            },
+            "description": "Sets a cart line's quantity to an exact value (this is a **set**, not an increment like Add Item — use this for the +/- steppers on a cart page). This is what changing the quantity input on a `/cart` page submits to.\n\n**What to send:** the product's id in the URL, and the new `quantity` in the body. `quantity` must be at least 1 — to remove an item entirely, use **Remove Item from Cart** instead of sending `quantity: 0`.\n\n**Good to know:**\n- Requires login; `401` without a token.\n- If the product isn't currently in the cart, you get `404` — see the saved error example. Use **Add Item to Cart** to add it first.\n- `quantity` missing, non-numeric, or less than 1 returns `400`."
+          },
+          "response": [
+            {
+              "name": "Success - Quantity updated",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/cart/items/64f1a2b3c4d5e6f7a8b9c1a1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cart", "items", "64f1a2b3c4d5e6f7a8b9c1a1"]
+                },
+                "body": { "mode": "raw", "raw": "{\n  \"quantity\": 3\n}" }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"cart\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c2a1\",\n      \"items\": [\n        {\n          \"product\": {\n            \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n            \"name\": \"Wireless Bluetooth Headphones\",\n            \"slug\": \"wireless-bluetooth-headphones\",\n            \"price\": 79.99,\n            \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n            \"category\": \"Electronics\",\n            \"countInStock\": 45\n          },\n          \"quantity\": 3,\n          \"subtotal\": 239.97\n        }\n      ],\n      \"totalItems\": 3,\n      \"totalPrice\": 239.97\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Item not in cart",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/cart/items/64f1a2b3c4d5e6f7a8b9c1a9",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cart", "items", "64f1a2b3c4d5e6f7a8b9c1a9"]
+                },
+                "body": { "mode": "raw", "raw": "{\n  \"quantity\": 3\n}" }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Item not found in cart\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Remove Item from Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/items/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "items", "{{productId}}"]
+            },
+            "description": "Removes one product line from the cart entirely, regardless of its quantity. This is what a cart page's \"Remove\" / trash-icon button calls.\n\n**What to send:** nothing in the body — just the product's id in the URL.\n\n**What you get back:** the updated cart (same shape as **Get My Cart**), so you can re-render the cart immediately.\n\n**Good to know:**\n- Requires login; `401` without a token.\n- Removing a `productId` that isn't currently in the cart returns `404` rather than a false \"success\"."
+          },
+          "response": [
+            {
+              "name": "Success - Item removed",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/cart/items/64f1a2b3c4d5e6f7a8b9c1a1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cart", "items", "64f1a2b3c4d5e6f7a8b9c1a1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"cart\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c2a1\",\n      \"items\": [],\n      \"totalItems\": 0,\n      \"totalPrice\": 0\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Item not in cart",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+                "url": {
+                  "raw": "{{baseUrl}}/cart/items/64f1a2b3c4d5e6f7a8b9c1a9",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["cart", "items", "64f1a2b3c4d5e6f7a8b9c1a9"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Item not found in cart\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart"]
+            },
+            "description": "Empties the logged-in user's cart completely — every item, in one call. This is what an \"Empty Cart\" button calls, and what you'd typically call right after a successful checkout in a future lecture.\n\n**What to send:** nothing — no body, no params.\n\n**Good to know:**\n- Requires login; `401` without a token.\n- Idempotent: calling it on an already-empty cart still returns `200` with an empty cart, never an error."
+          },
+          "response": [
+            {
+              "name": "Success - Cart cleared",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+                "url": { "raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"cart\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c2a1\",\n      \"items\": [],\n      \"totalItems\": 0,\n      \"totalPrice\": 0\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "productId", "value": "", "type": "string" }
+  ]
+}

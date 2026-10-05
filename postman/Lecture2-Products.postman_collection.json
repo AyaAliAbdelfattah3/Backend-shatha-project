@@ -1,0 +1,1159 @@
+{
+  "info": {
+    "_postman_id": "d3e4f5a6-7b8c-4d9e-af01-2b3c4d5e6f7a",
+    "name": "Lecture 2 - Products",
+    "description": "# E-commerce Training API — Lecture 2: Products\n\nThis collection covers the **Products module**: browsing/searching the public catalog, and the admin-only Create/Update/Delete endpoints.\n\n## How to use this collection\n1. Set the `baseUrl` collection variable if your backend isn't running at the default `http://localhost:5000/api` (Collection → Variables tab).\n2. Make sure the backend is running (`npm run dev`) and seeded (`npm run seed` — this creates the admin/test users **and** at least 14 sample products across 4 categories).\n3. Browse the public requests in the **Lecture 2 - Products** folder freely — `Get All Products`, `Search Products`, `Filter by Category`, `Filter by Price Range`, `Sort Products`, `Paginate Products`, `Featured Products Only`, `Get Categories List`, and `Get Product By ID` all work with no login.\n4. Before trying **Create Product**, **Update Product**, or **Delete Product**, run **Setup → Admin Login (get token)** once. Its Tests tab automatically saves the returned JWT into the `{{token}}` collection variable, which those requests already send as `Authorization: Bearer {{token}}`.\n5. Need to upload actual image files from your computer instead of pasting URLs? Use **Create Product - Upload From Device (Admin)** — same endpoint, `multipart/form-data` body instead of JSON.\n\n## Response shape\nEvery endpoint in this API replies with one of two shapes:\n\n```jsonc\n// success\n{ \"success\": true, \"data\": { ... } }\n\n// error\n{ \"success\": false, \"message\": \"Human readable message\", \"errors\": [] }\n```\n\n`errors` is populated (an array of `{ field, message }`) when the failure came from input validation; otherwise it's an empty array.\n\n## Note\nThis collection only covers Products. For Register/Login/Me/Logout, import the separate **Lecture 1 - Authentication** collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Admin Login (get token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"Admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in as the seeded admin account and grabs a JWT you can use for the **admin-only** requests in this collection: **Create Product**, **Update Product**, and **Delete Product**.\n\n**Run this once before touching those three requests.** Its Tests tab automatically copies the token from the response into the `{{token}}` collection variable, so every admin request below sends `Authorization: Bearer {{token}}` for you — nothing to copy/paste.\n\nThis is the exact same `/api/auth/login` endpoint covered in the Lecture 1 - Authentication collection; it's duplicated here (with the admin credentials pre-filled) so this Products collection works standalone even if you haven't imported Lecture 1.\n\n**Good to know:**\n- The seeded admin is `admin@test.com` / `Admin123` (created by `npm run seed` on the backend).\n- A normal (non-admin) account can log in fine here too, but its token will get a `403 Forbidden` on Create/Update/Delete — see those requests' saved error examples."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+                  "    console.log(\"Admin token saved:\", jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Success - Logged in as admin",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"Admin123\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n      \"name\": \"Admin User\",\n      \"email\": \"admin@test.com\",\n      \"role\": \"admin\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NGYxYTJiM2M0ZDVlNmY3YThiOWMwZDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDUzMTIyMDAsImV4cCI6MTcwNTkxNzAwMH0.dGhpc19pc19hX2Zha2Vfc2lnbmF0dXJlX2V4YW1wbGU\"\n  }\n}"
+            },
+            {
+              "name": "Error - Wrong credentials",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"wrongPassword\"\n}"
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid email or password\",\n  \"errors\": []\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Lecture 2 - Products",
+      "item": [
+        {
+          "name": "Get All Products (default)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "description": "Returns a **paginated** list of products. This is the request your product listing / home page grid would call with no filters applied.\n\n**Defaults when you send no query params:** `page=1`, `limit=10`, sorted newest-first.\n\n**Response shape:**\n```jsonc\n{\n  \"success\": true,\n  \"data\": {\n    \"products\": [ ... up to `limit` items ... ],\n    \"page\": 1,\n    \"totalPages\": 2,\n    \"totalProducts\": 14\n  }\n}\n```\nUse `page` + `totalPages` to build pager buttons, and `totalProducts` for a \"showing X of Y results\" label.\n\n**This route is public** — no `Authorization` header needed, and every combinable filter is optional. See the other requests in this folder (**Search**, **Filter by Category**, **Filter by Price Range**, **Sort**, **Paginate**, **Featured Only**) for how to use each query param — they all hit this exact same endpoint, just with different query strings.\n\n**Good to know:** this endpoint never returns an error response — unrecognized or malformed query params are simply ignored and it falls back to defaults, so there's no saved error example here (unlike the other 5 endpoints in this collection)."
+          },
+          "response": [
+            {
+              "name": "Success - First page, default sort",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n        \"name\": \"Wireless Bluetooth Headphones\",\n        \"slug\": \"wireless-bluetooth-headphones\",\n        \"description\": \"Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.\",\n        \"price\": 79.99,\n        \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/headphones-2/600/600\",\n          \"https://picsum.photos/seed/headphones-3/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 45,\n        \"rating\": 4.5,\n        \"numReviews\": 128,\n        \"isFeatured\": true,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a3\",\n        \"name\": \"Smart Fitness Watch\",\n        \"slug\": \"smart-fitness-watch\",\n        \"description\": \"Track heart rate, sleep, and workouts with this water-resistant smart watch. Includes a 7-day battery and phone notifications.\",\n        \"price\": 129.99,\n        \"image\": \"https://picsum.photos/seed/smartwatch/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/smartwatch-2/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"FitTrack\",\n        \"countInStock\": 30,\n        \"rating\": 4.3,\n        \"numReviews\": 96,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a2\",\n        \"name\": \"Portable Bluetooth Speaker\",\n        \"slug\": \"portable-bluetooth-speaker\",\n        \"description\": \"Compact, splash-proof Bluetooth speaker with 12 hours of playtime and surprisingly deep bass for its size.\",\n        \"price\": 49.99,\n        \"image\": \"https://picsum.photos/seed/speaker/600/600\",\n        \"images\": [],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 60,\n        \"rating\": 4.1,\n        \"numReviews\": 54,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"totalPages\": 2,\n    \"totalProducts\": 14\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?search=headphones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "headphones"
+                }
+              ]
+            },
+            "description": "Full-text search across a product's `name` and `description` fields, using MongoDB's `$text` index (fast — not a slow regex scan).\n\n**Query param:** `search` — try `headphones`, `coffee`, `yoga`, etc.\n\nCombine it with any other filter, e.g. `?search=shoes&category=Clothing`.\n\n**Good to know:** if nothing matches, you still get a normal `200` response with an empty `products` array and `totalProducts: 0` — that's not an error, it's just \"no results\" (see the second saved example)."
+          },
+          "response": [
+            {
+              "name": "Success - Match found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?search=headphones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "headphones"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n        \"name\": \"Wireless Bluetooth Headphones\",\n        \"slug\": \"wireless-bluetooth-headphones\",\n        \"description\": \"Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.\",\n        \"price\": 79.99,\n        \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/headphones-2/600/600\",\n          \"https://picsum.photos/seed/headphones-3/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 45,\n        \"rating\": 4.5,\n        \"numReviews\": 128,\n        \"isFeatured\": true,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"totalPages\": 1,\n    \"totalProducts\": 1\n  }\n}"
+            },
+            {
+              "name": "Success - No matches found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?search=xyznotarealproduct",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "search",
+                      "value": "xyznotarealproduct"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"products\": [],\n    \"page\": 1,\n    \"totalPages\": 1,\n    \"totalProducts\": 0\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Filter by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?category=Electronics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Electronics"
+                }
+              ]
+            },
+            "description": "Filters products by an **exact** category match.\n\n**Query param:** `category` — must be one of the values returned by **Get Categories List** (below), e.g. `Electronics`, `Clothing`, `Home & Kitchen`, `Sports & Outdoors`. It's case-sensitive, so pull the value straight from that endpoint rather than typing it by hand.\n\nThis is what powers a category filter dropdown or sidebar on the frontend."
+          },
+          "response": [
+            {
+              "name": "Success - Electronics only",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?category=Electronics",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": "Electronics"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n        \"name\": \"Wireless Bluetooth Headphones\",\n        \"slug\": \"wireless-bluetooth-headphones\",\n        \"description\": \"Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.\",\n        \"price\": 79.99,\n        \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/headphones-2/600/600\",\n          \"https://picsum.photos/seed/headphones-3/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 45,\n        \"rating\": 4.5,\n        \"numReviews\": 128,\n        \"isFeatured\": true,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a3\",\n        \"name\": \"Smart Fitness Watch\",\n        \"slug\": \"smart-fitness-watch\",\n        \"description\": \"Track heart rate, sleep, and workouts with this water-resistant smart watch. Includes a 7-day battery and phone notifications.\",\n        \"price\": 129.99,\n        \"image\": \"https://picsum.photos/seed/smartwatch/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/smartwatch-2/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"FitTrack\",\n        \"countInStock\": 30,\n        \"rating\": 4.3,\n        \"numReviews\": 96,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a2\",\n        \"name\": \"Portable Bluetooth Speaker\",\n        \"slug\": \"portable-bluetooth-speaker\",\n        \"description\": \"Compact, splash-proof Bluetooth speaker with 12 hours of playtime and surprisingly deep bass for its size.\",\n        \"price\": 49.99,\n        \"image\": \"https://picsum.photos/seed/speaker/600/600\",\n        \"images\": [],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 60,\n        \"rating\": 4.1,\n        \"numReviews\": 54,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"totalPages\": 1,\n    \"totalProducts\": 4\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Filter by Price Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?minPrice=50&maxPrice=150",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "minPrice",
+                  "value": "50"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "150"
+                }
+              ]
+            },
+            "description": "Filters products whose `price` falls within a range.\n\n**Query params (both optional, independent):**\n- `minPrice` — only products priced at or above this\n- `maxPrice` — only products priced at or below this\n\nSend just one of them for an open-ended range (e.g. `?minPrice=100` = \"$100 and up\"), or both for a bounded range like the example here (`$50–$150`)."
+          },
+          "response": [
+            {
+              "name": "Success - $50 to $150",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?minPrice=50&maxPrice=150",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "minPrice",
+                      "value": "50"
+                    },
+                    {
+                      "key": "maxPrice",
+                      "value": "150"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a3\",\n        \"name\": \"Smart Fitness Watch\",\n        \"slug\": \"smart-fitness-watch\",\n        \"description\": \"Track heart rate, sleep, and workouts with this water-resistant smart watch. Includes a 7-day battery and phone notifications.\",\n        \"price\": 129.99,\n        \"image\": \"https://picsum.photos/seed/smartwatch/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/smartwatch-2/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"FitTrack\",\n        \"countInStock\": 30,\n        \"rating\": 4.3,\n        \"numReviews\": 96,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n        \"name\": \"Wireless Bluetooth Headphones\",\n        \"slug\": \"wireless-bluetooth-headphones\",\n        \"description\": \"Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.\",\n        \"price\": 79.99,\n        \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/headphones-2/600/600\",\n          \"https://picsum.photos/seed/headphones-3/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 45,\n        \"rating\": 4.5,\n        \"numReviews\": 128,\n        \"isFeatured\": true,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"totalPages\": 1,\n    \"totalProducts\": 2\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Sort Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?sort=price_asc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "price_asc"
+                }
+              ]
+            },
+            "description": "Controls the sort order of results.\n\n**Query param `sort`, one of:**\n- `price_asc` — cheapest first\n- `price_desc` — most expensive first\n- `newest` — most recently added first (this is also the **default** when `sort` is omitted)\n- `rating` — highest rated first\n\nAny other/unrecognized value silently falls back to `newest`."
+          },
+          "response": [
+            {
+              "name": "Success - Sorted price_asc",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?sort=price_asc",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "sort",
+                      "value": "price_asc"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a2\",\n        \"name\": \"Portable Bluetooth Speaker\",\n        \"slug\": \"portable-bluetooth-speaker\",\n        \"description\": \"Compact, splash-proof Bluetooth speaker with 12 hours of playtime and surprisingly deep bass for its size.\",\n        \"price\": 49.99,\n        \"image\": \"https://picsum.photos/seed/speaker/600/600\",\n        \"images\": [],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 60,\n        \"rating\": 4.1,\n        \"numReviews\": 54,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n        \"name\": \"Wireless Bluetooth Headphones\",\n        \"slug\": \"wireless-bluetooth-headphones\",\n        \"description\": \"Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.\",\n        \"price\": 79.99,\n        \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/headphones-2/600/600\",\n          \"https://picsum.photos/seed/headphones-3/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 45,\n        \"rating\": 4.5,\n        \"numReviews\": 128,\n        \"isFeatured\": true,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a3\",\n        \"name\": \"Smart Fitness Watch\",\n        \"slug\": \"smart-fitness-watch\",\n        \"description\": \"Track heart rate, sleep, and workouts with this water-resistant smart watch. Includes a 7-day battery and phone notifications.\",\n        \"price\": 129.99,\n        \"image\": \"https://picsum.photos/seed/smartwatch/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/smartwatch-2/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"FitTrack\",\n        \"countInStock\": 30,\n        \"rating\": 4.3,\n        \"numReviews\": 96,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"totalPages\": 2,\n    \"totalProducts\": 14\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Paginate Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?page=2&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Controls which \"page\" of results comes back.\n\n**Query params:**\n- `page` — defaults to `1`\n- `limit` — items per page, defaults to `10` (capped at `100` server-side so a typo can't accidentally ask for the entire catalog)\n\nThis example asks for page 2 with 5 items per page — i.e. products 6-10 out of the total.\n\nRead `data.page` / `data.totalPages` / `data.totalProducts` from the response to build \"Page 2 of 3\" style pagination controls."
+          },
+          "response": [
+            {
+              "name": "Success - Page 2, 5 per page",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?page=2&limit=5",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "2"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a2\",\n        \"name\": \"Portable Bluetooth Speaker\",\n        \"slug\": \"portable-bluetooth-speaker\",\n        \"description\": \"Compact, splash-proof Bluetooth speaker with 12 hours of playtime and surprisingly deep bass for its size.\",\n        \"price\": 49.99,\n        \"image\": \"https://picsum.photos/seed/speaker/600/600\",\n        \"images\": [],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 60,\n        \"rating\": 4.1,\n        \"numReviews\": 54,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a3\",\n        \"name\": \"Smart Fitness Watch\",\n        \"slug\": \"smart-fitness-watch\",\n        \"description\": \"Track heart rate, sleep, and workouts with this water-resistant smart watch. Includes a 7-day battery and phone notifications.\",\n        \"price\": 129.99,\n        \"image\": \"https://picsum.photos/seed/smartwatch/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/smartwatch-2/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"FitTrack\",\n        \"countInStock\": 30,\n        \"rating\": 4.3,\n        \"numReviews\": 96,\n        \"isFeatured\": false,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n        \"name\": \"Wireless Bluetooth Headphones\",\n        \"slug\": \"wireless-bluetooth-headphones\",\n        \"description\": \"Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.\",\n        \"price\": 79.99,\n        \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/headphones-2/600/600\",\n          \"https://picsum.photos/seed/headphones-3/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 45,\n        \"rating\": 4.5,\n        \"numReviews\": 128,\n        \"isFeatured\": true,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      }\n    ],\n    \"page\": 2,\n    \"totalPages\": 3,\n    \"totalProducts\": 14\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Featured Products Only",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?featured=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "featured",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Returns only products marked `isFeatured: true` — this is what feeds the \"Featured\" section on the home page.\n\n**Query param:** `featured=true`.\n\n**Good to know:** the check is strictly `featured === \"true\"`. Sending `featured=false`, `featured=0`, or anything else does **not** filter out featured products — it's simply treated as \"not set\" and you get the full unfiltered list back. If you want \"only non-featured\", you'd need to filter that client-side (there's no server param for it in this lecture)."
+          },
+          "response": [
+            {
+              "name": "Success - Featured only",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?featured=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "featured",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"products\": [\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n        \"name\": \"Wireless Bluetooth Headphones\",\n        \"slug\": \"wireless-bluetooth-headphones\",\n        \"description\": \"Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.\",\n        \"price\": 79.99,\n        \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n        \"images\": [\n          \"https://picsum.photos/seed/headphones-2/600/600\",\n          \"https://picsum.photos/seed/headphones-3/600/600\"\n        ],\n        \"category\": \"Electronics\",\n        \"brand\": \"SoundCore\",\n        \"countInStock\": 45,\n        \"rating\": 4.5,\n        \"numReviews\": 128,\n        \"isFeatured\": true,\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n        \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"totalPages\": 1,\n    \"totalProducts\": 4\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Categories List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/categories/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "categories",
+                "list"
+              ]
+            },
+            "description": "Returns the list of **distinct** category names currently in use across all products — exactly what you need to build the category filter dropdown or the home page's category tiles, without hardcoding category names in the frontend.\n\n**What you get back:** a plain array of strings, not an array of objects.\n\n**Good to know:**\n- This is a **public** route — no token needed.\n- There's no error case for this endpoint: if there happen to be zero products in the database, it just returns `\"data\": []`, still with `\"success\": true`."
+          },
+          "response": [
+            {
+              "name": "Success - Category list",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products/categories/list",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    "categories",
+                    "list"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    \"Electronics\",\n    \"Clothing\",\n    \"Home & Kitchen\",\n    \"Sports & Outdoors\"\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Product By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "64f1a2b3c4d5e6f7a8b9c1a1"
+              ]
+            },
+            "description": "Returns a single product — this is the request behind a Product Details page.\n\n**What to send:** the Mongo `id` in the URL path (copy it from any product object returned by the other requests in this folder).\n\n**Good to know:**\n- This is a **public** route — no token needed.\n- If the `id` is a validly-formatted Mongo ObjectId but doesn't match any product, you get a clean `404` (see the saved error example) — this is the case you should handle on the frontend with a \"Product not found\" page.\n- If the `id` isn't even a valid ObjectId format (e.g. you pasted a slug or a random string), you instead get a generic `400 Invalid _id` from the shared error handler."
+          },
+          "response": [
+            {
+              "name": "Success - Product found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    "64f1a2b3c4d5e6f7a8b9c1a1"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"product\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c1a1\",\n      \"name\": \"Wireless Bluetooth Headphones\",\n      \"slug\": \"wireless-bluetooth-headphones\",\n      \"description\": \"Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.\",\n      \"price\": 79.99,\n      \"image\": \"https://picsum.photos/seed/headphones/600/600\",\n      \"images\": [\n        \"https://picsum.photos/seed/headphones-2/600/600\",\n        \"https://picsum.photos/seed/headphones-3/600/600\"\n      ],\n      \"category\": \"Electronics\",\n      \"brand\": \"SoundCore\",\n      \"countInStock\": 45,\n      \"rating\": 4.5,\n      \"numReviews\": 128,\n      \"isFeatured\": true,\n      \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n      \"updatedAt\": \"2026-07-20T09:00:00.000Z\"\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Product not found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c9c9",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    "64f1a2b3c4d5e6f7a8b9c9c9"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Product not found\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Product (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ceramic Pour-Over Coffee Dripper\",\n  \"description\": \"A hand-glazed ceramic pour-over dripper that fits most standard mug sizes, for a cleaner cup than drip machines.\",\n  \"price\": 22.5,\n  \"image\": \"https://picsum.photos/seed/pourover/600/600\",\n  \"images\": [\n    \"https://picsum.photos/seed/pourover-2/600/600\"\n  ],\n  \"category\": \"Home & Kitchen\",\n  \"brand\": \"BrewWell\",\n  \"countInStock\": 40,\n  \"isFeatured\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "description": "Creates a new product. This is what the admin dashboard's \"Add Product\" form submits to.\n\n**Required fields:** `name`, `description`, `price` (must be ≥ 0), `image`, `category`.\n**Optional fields:** `images` (array, defaults to `[]`), `brand`, `countInStock` (defaults to `0`, must be ≥ 0), `isFeatured` (defaults to `false`).\n\n**What you get back:** the created product, including its server-generated `id` and `slug` (auto-derived from `name` — you never send `slug` yourself).\n\n**This is an admin-only route:**\n1. Run **Setup → Admin Login (get token)** first so `{{token}}` holds a valid admin JWT.\n2. This request already sends `Authorization: Bearer {{token}}` (see the Authorization tab) — nothing else to configure.\n\n**Good to know:**\n- A logged-in user whose role is `\"user\"` (not `\"admin\"`) gets a `403 Forbidden` here — see the saved error example. That's different from a `401`: `403` means \"I know who you are, you're just not allowed.\"\n- Missing/invalid fields return a `400` with a per-field `errors` array — also saved as an example below."
+          },
+          "response": [
+            {
+              "name": "Success - Product created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Ceramic Pour-Over Coffee Dripper\",\n  \"description\": \"A hand-glazed ceramic pour-over dripper that fits most standard mug sizes, for a cleaner cup than drip machines.\",\n  \"price\": 22.5,\n  \"image\": \"https://picsum.photos/seed/pourover/600/600\",\n  \"images\": [\n    \"https://picsum.photos/seed/pourover-2/600/600\"\n  ],\n  \"category\": \"Home & Kitchen\",\n  \"brand\": \"BrewWell\",\n  \"countInStock\": 40,\n  \"isFeatured\": false\n}"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"product\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c1b1\",\n      \"name\": \"Ceramic Pour-Over Coffee Dripper\",\n      \"slug\": \"ceramic-pour-over-coffee-dripper\",\n      \"description\": \"A hand-glazed ceramic pour-over dripper that fits most standard mug sizes, for a cleaner cup than drip machines.\",\n      \"price\": 22.5,\n      \"image\": \"https://picsum.photos/seed/pourover/600/600\",\n      \"images\": [\n        \"https://picsum.photos/seed/pourover-2/600/600\"\n      ],\n      \"category\": \"Home & Kitchen\",\n      \"brand\": \"BrewWell\",\n      \"countInStock\": 40,\n      \"rating\": 0,\n      \"numReviews\": 0,\n      \"isFeatured\": false,\n      \"createdAt\": \"2026-07-29T09:00:00.000Z\",\n      \"updatedAt\": \"2026-07-29T09:00:00.000Z\"\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Forbidden (not an admin)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Some Product\",\n  \"description\": \"d\",\n  \"price\": 10,\n  \"image\": \"https://picsum.photos/seed/x/600/600\",\n  \"category\": \"Electronics\"\n}"
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Forbidden: admin access required\",\n  \"errors\": []\n}"
+            },
+            {
+              "name": "Error - Validation failed (missing fields)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Incomplete Product\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"description\",\n      \"message\": \"Description is required\"\n    },\n    {\n      \"field\": \"price\",\n      \"message\": \"Price is required\"\n    },\n    {\n      \"field\": \"price\",\n      \"message\": \"Price must be a positive number\"\n    },\n    {\n      \"field\": \"image\",\n      \"message\": \"Main image URL is required\"\n    },\n    {\n      \"field\": \"category\",\n      \"message\": \"Category is required\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Product - Upload From Device (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Ceramic Pour-Over Coffee Dripper", "type": "text" },
+                {
+                  "key": "description",
+                  "value": "A hand-glazed ceramic pour-over dripper that fits most standard mug sizes, for a cleaner cup than drip machines.",
+                  "type": "text"
+                },
+                { "key": "price", "value": "22.5", "type": "text" },
+                { "key": "category", "value": "Home & Kitchen", "type": "text" },
+                { "key": "brand", "value": "BrewWell", "type": "text" },
+                { "key": "countInStock", "value": "40", "type": "text" },
+                { "key": "isFeatured", "value": "false", "type": "text" },
+                { "key": "image", "type": "file", "src": [] },
+                { "key": "images", "type": "file", "src": [] }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "description": "Same endpoint as **Create Product (Admin)**, but sends actual image files from your device instead of image URLs.\n\n**What to send:** `multipart/form-data` (select this request's Body tab → `form-data`, already configured below):\n- Text fields: `name`, `description`, `price`, `category`, `brand`, `countInStock`, `isFeatured` — identical to the JSON version.\n- File fields: `image` (pick 1 file — this becomes the main image) and `images` (you can attach up to 5 files — the gallery). Click the `image`/`images` row, switch its type to \"File\" if it isn't already, then click \"Select Files\".\n\n**What you get back:** the created product. `image`/`images` in the response are server paths like `/uploads/products/<generated-filename>.jpg` — prefix them with your backend origin (e.g. `http://localhost:5000`) to load them in a browser/`<img>` tag; `{{baseUrl}}` already includes `/api`, so don't reuse it for the image URL.\n\n**Good to know:**\n- **Admin-only**, same as the JSON version: `403` for a non-admin token.\n- Only `image/jpeg`, `image/png`, `image/webp`, `image/gif` are accepted; anything else is rejected with `400`.\n- Each file is capped at 5MB.\n- You can mix modes across requests (some products via URL, others via upload) — the backend stores whichever `image`/`images` value it ends up with the same way either way."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 69.99,\n  \"countInStock\": 25,\n  \"isFeatured\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "64f1a2b3c4d5e6f7a8b9c1a2"
+              ]
+            },
+            "description": "Updates an existing product. This is what the admin dashboard's \"Edit Product\" form submits to.\n\n**What to send:** only the fields you want to change (this is a partial update, like the example body here which just adjusts `price`, `countInStock`, and `isFeatured`) — you don't have to resend the entire product. Any of the same fields accepted by **Create Product** can be updated.\n\n**Good to know:**\n- **Admin-only**, same as Create: needs `{{token}}` to be an admin JWT (run **Setup → Admin Login** first), otherwise `403`.\n- If you change `name`, the `slug` is automatically regenerated to match.\n- If the `id` in the URL doesn't match any product, you get a `404` — see the saved error example."
+          },
+          "response": [
+            {
+              "name": "Success - Product updated",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a2",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    "64f1a2b3c4d5e6f7a8b9c1a2"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"price\": 69.99,\n  \"countInStock\": 25,\n  \"isFeatured\": true\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"product\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c1a2\",\n      \"name\": \"Portable Bluetooth Speaker\",\n      \"slug\": \"portable-bluetooth-speaker\",\n      \"description\": \"Compact, splash-proof Bluetooth speaker with 12 hours of playtime and surprisingly deep bass for its size.\",\n      \"price\": 69.99,\n      \"image\": \"https://picsum.photos/seed/speaker/600/600\",\n      \"images\": [],\n      \"category\": \"Electronics\",\n      \"brand\": \"SoundCore\",\n      \"countInStock\": 25,\n      \"rating\": 4.1,\n      \"numReviews\": 54,\n      \"isFeatured\": true,\n      \"createdAt\": \"2026-07-20T09:00:00.000Z\",\n      \"updatedAt\": \"2026-07-29T09:05:00.000Z\"\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Product not found",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c9c9",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    "64f1a2b3c4d5e6f7a8b9c9c9"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"price\": 69.99\n}"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Product not found\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Product (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "64f1a2b3c4d5e6f7a8b9c1a2"
+              ]
+            },
+            "description": "Permanently deletes a product. This is what the admin dashboard's \"Delete\" button calls — there's no soft-delete/undo in this lecture, so treat it as irreversible.\n\n**What to send:** nothing in the body — just the product's `id` in the URL, plus the admin bearer token (auto-filled from `{{token}}`).\n\n**Good to know:**\n- **Admin-only**: a non-admin token gets `403 Forbidden` (same behavior as Create/Update).\n- Deleting an `id` that doesn't exist returns `404 Product not found` rather than a false \"success\" — useful for catching a stale/already-deleted id on the frontend."
+          },
+          "response": [
+            {
+              "name": "Success - Product deleted",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a2",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    "64f1a2b3c4d5e6f7a8b9c1a2"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"message\": \"Product deleted successfully\"\n  }\n}"
+            },
+            {
+              "name": "Error - Product not found",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c9c9",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    "64f1a2b3c4d5e6f7a8b9c9c9"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Product not found\",\n  \"errors\": []\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

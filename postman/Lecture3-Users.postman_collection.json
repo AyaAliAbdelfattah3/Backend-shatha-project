@@ -1,0 +1,409 @@
+{
+  "info": {
+    "_postman_id": "e4f5a6b7-8c9d-4e0f-b012-3c4d5e6f7a8b",
+    "name": "Lecture 3 - Users",
+    "description": "# E-commerce Training API — Lecture 3: User Management\n\nThis collection covers the **admin-only** user management endpoints: listing users, viewing a single user, promoting/demoting roles, and deleting accounts.\n\n## How to use this collection\n1. Set the `baseUrl` collection variable if your backend isn't running at the default `http://localhost:5000/api` (Collection → Variables tab).\n2. Make sure the backend is running (`npm run dev`) and seeded (`npm run seed`).\n3. Run **Setup → Admin Login (get token)** first. Its Tests tab automatically saves the returned JWT into the `{{token}}` collection variable, which every request below sends as `Authorization: Bearer {{token}}`.\n4. Every request in the **Lecture 3 - Users** folder is admin-only — a non-admin token gets `403 Forbidden` on all of them.\n\n## Response shape\nEvery endpoint in this API replies with one of two shapes:\n\n```jsonc\n// success\n{ \"success\": true, \"data\": { ... } }\n\n// error\n{ \"success\": false, \"message\": \"Human readable message\", \"errors\": [] }\n```\n\n`errors` is populated (an array of `{ field, message }`) when the failure came from input validation; otherwise it's an empty array.\n\n## Note\nThis collection only covers user management. For Register/Login/Me/Logout, import the separate **Lecture 1 - Authentication** collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Admin Login (get token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"Admin123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Logs in as the seeded admin account and grabs a JWT you can use for every request in the **Lecture 3 - Users** folder.\n\n**Run this once before touching those requests.** Its Tests tab automatically copies the token from the response into the `{{token}}` collection variable, so every request below sends `Authorization: Bearer {{token}}` for you — nothing to copy/paste.\n\n**Good to know:**\n- The seeded admin is `admin@test.com` / `Admin123` (created by `npm run seed` on the backend).\n- A normal (non-admin) account can log in fine here too, but its token will get a `403 Forbidden` on every request in this collection — see those requests' saved error examples."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+                  "    console.log(\"Admin token saved:\", jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Success - Logged in as admin",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"Admin123\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n      \"name\": \"Admin User\",\n      \"email\": \"admin@test.com\",\n      \"role\": \"admin\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NGYxYTJiM2M0ZDVlNmY3YThiOWMwZDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDUzMTIyMDAsImV4cCI6MTcwNTkxNzAwMH0.dGhpc19pc19hX2Zha2Vfc2lnbmF0dXJlX2V4YW1wbGU\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Lecture 3 - Users",
+      "item": [
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Returns every registered user, newest first. This is what the admin dashboard's \"Users\" table loads.\n\n**What to send:** nothing — just an admin `Authorization: Bearer {{token}}` header (auto-filled, run **Setup → Admin Login** first).\n\n**Good to know:**\n- **Admin-only**: a non-admin token gets `403 Forbidden` — see the saved error example.\n- Passwords are never included in the response (the schema marks that field `select: false`)."
+          },
+          "response": [
+            {
+              "name": "Success - User list",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"users\": [\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n        \"name\": \"Admin User\",\n        \"email\": \"admin@test.com\",\n        \"role\": \"admin\",\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c0d2\",\n        \"name\": \"Test User One\",\n        \"email\": \"user1@test.com\",\n        \"role\": \"user\",\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\"\n      },\n      {\n        \"id\": \"64f1a2b3c4d5e6f7a8b9c0d3\",\n        \"name\": \"Test User Two\",\n        \"email\": \"user2@test.com\",\n        \"role\": \"user\",\n        \"createdAt\": \"2026-07-20T09:00:00.000Z\"\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "Error - Forbidden (not an admin)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Forbidden: admin access required\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User By ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d2",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d2"]
+            },
+            "description": "Returns a single user by id.\n\n**What to send:** the Mongo `id` in the URL path (copy it from **Get All Users**), plus the admin bearer token.\n\n**Good to know:**\n- **Admin-only**, same as Get All Users: `403` for a non-admin token.\n- If the `id` doesn't match any user, you get a clean `404` — see the saved error example."
+          },
+          "response": [
+            {
+              "name": "Success - User found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d2",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d2"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d2\",\n      \"name\": \"Test User One\",\n      \"email\": \"user1@test.com\",\n      \"role\": \"user\",\n      \"createdAt\": \"2026-07-20T09:00:00.000Z\"\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - User not found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c9c9",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "64f1a2b3c4d5e6f7a8b9c9c9"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"User not found\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User Role (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"admin\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d2/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d2", "role"]
+            },
+            "description": "Promotes or demotes a user by setting their `role`. This is the endpoint to use instead of editing the database by hand — the seeded admin (`admin@test.com`) can promote any other account to `\"admin\"` here.\n\n**What to send:** `role`, either `\"user\"` or `\"admin\"`, as JSON in the body.\n\n**Good to know:**\n- **Admin-only**: `403` for a non-admin token.\n- An admin **cannot change their own role** through this endpoint (`400 Bad Request`) — this prevents an admin from accidentally locking themselves out. Use a *different* admin account (or another admin) to change someone's role, never your own.\n- Sending anything other than `\"user\"`/`\"admin\"` fails validation with `400` (see the saved example).\n- If the `id` doesn't match any user, you get `404`.\n- After promoting a user, they must **log in again** to get a fresh JWT — the role in an already-issued token doesn't change retroactively (the token itself never changes; `protect` re-reads the role from the database on every request, but the login response `token` still reflects the role at the time it was issued)."
+          },
+          "response": [
+            {
+              "name": "Success - Role updated",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d2/role",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d2", "role"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role\": \"admin\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d2\",\n      \"name\": \"Test User One\",\n      \"email\": \"user1@test.com\",\n      \"role\": \"admin\",\n      \"createdAt\": \"2026-07-20T09:00:00.000Z\"\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Cannot change your own role",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d1/role",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d1", "role"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role\": \"user\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"You cannot change your own role\",\n  \"errors\": []\n}"
+            },
+            {
+              "name": "Error - Validation failed (invalid role)",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d2/role",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d2", "role"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role\": \"superadmin\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"role\",\n      \"message\": \"Role must be either 'user' or 'admin'\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete User (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d3",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d3"]
+            },
+            "description": "Permanently deletes a user account. There's no soft-delete/undo, so treat it as irreversible.\n\n**What to send:** nothing in the body — just the user's `id` in the URL, plus the admin bearer token.\n\n**Good to know:**\n- **Admin-only**: `403` for a non-admin token.\n- An admin **cannot delete their own account** through this endpoint (`400 Bad Request`) — same safeguard as Update User Role.\n- Deleting an `id` that doesn't exist returns `404 User not found`."
+          },
+          "response": [
+            {
+              "name": "Success - User deleted",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d3",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d3"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"message\": \"User deleted successfully\"\n  }\n}"
+            },
+            {
+              "name": "Error - Cannot delete your own account",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "64f1a2b3c4d5e6f7a8b9c0d1"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"You cannot delete your own account\",\n  \"errors\": []\n}"
+            },
+            {
+              "name": "Error - User not found",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c9c9",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "64f1a2b3c4d5e6f7a8b9c9c9"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"User not found\",\n  \"errors\": []\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ]
+}

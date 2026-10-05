@@ -1,0 +1,332 @@
+{
+  "info": {
+    "_postman_id": "b1e2c3d4-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+    "name": "Lecture 1 - Authentication",
+    "description": "# E-commerce Training API — Lecture 1: Authentication\n\nThis collection covers the 4 endpoints you'll use to build the login/signup flow for the frontend course: **Register**, **Login**, **Me**, and **Logout**.\n\n## How to use this collection\n1. Select the **Lecture 1 - Auth Environment** environment (top-right dropdown in Postman) so `{{baseUrl}}` and `{{token}}` are available.\n2. Make sure the backend is running locally (`npm run dev`) and you've seeded test data (`npm run seed`).\n3. Run **Login** (or **Register**) first. Its \"Tests\" tab contains a small script that automatically copies the JWT from the response into the `token` collection variable — you do NOT need to copy/paste it manually.\n4. Once `token` is set, **Me** and **Logout** will automatically send it as `Authorization: Bearer {{token}}`.\n\n## Response shape\nEvery endpoint in this API replies with one of two shapes:\n\n```jsonc\n// success\n{ \"success\": true, \"data\": { ... } }\n\n// error\n{ \"success\": false, \"message\": \"Human readable message\", \"errors\": [] }\n```\n\n`errors` is populated (an array of `{ field, message }`) when the failure came from input validation; otherwise it's an empty array.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Lecture 1 - Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sarah Connor\",\n  \"email\": \"sarah.connor@example.com\",\n  \"password\": \"Passw0rd!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Creates a brand new account.\n\n**What to send:** `name`, `email`, and `password` (min 6 characters) as JSON in the body.\n\n**What you get back:** the created user (never the password) plus a JWT `token` you can use immediately to call protected routes — that's why this request's Tests tab also auto-saves the token, just like Login.\n\n**Good to know:**\n- Every account created here always gets the `\"user\"` role, even if you try to send `\"role\": \"admin\"` in the body — the backend ignores that field on purpose. There is no self-service way to become an admin.\n- `email` must be unique. Trying to register an email that already exists returns a `400` with a validation-style error (see the saved \"Duplicate Email\" example response).\n- This is a **public** route — no `Authorization` header needed."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+                  "    console.log(\"Token saved from Register:\", jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Success - Account created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Sarah Connor\",\n  \"email\": \"sarah.connor@example.com\",\n  \"password\": \"Passw0rd!\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "register"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d2\",\n      \"name\": \"Sarah Connor\",\n      \"email\": \"sarah.connor@example.com\",\n      \"role\": \"user\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NGYxYTJiM2M0ZDVlNmY3YThiOWMwZDIiLCJyb2xlIjoidXNlciIsImlhdCI6MTcwNTMxMjIwMCwiZXhwIjoxNzA1OTE3MDAwfQ.dGhpc19pc19hX2Zha2Vfc2lnbmF0dXJlX2V4YW1wbGU\"\n  }\n}"
+            },
+            {
+              "name": "Error - Duplicate email",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Sarah Connor\",\n  \"email\": \"admin@test.com\",\n  \"password\": \"Passw0rd!\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "register"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"email\",\n      \"message\": \"Email is already registered\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"Admin123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Logs an existing user in and returns a JWT.\n\n**What to send:** `email` and `password` as JSON in the body. The example uses the seeded admin account (`npm run seed`) — swap in any account you've registered.\n\n**What you get back:** the user's profile plus a `token`. This request's Tests tab automatically saves that token into the `{{token}}` collection variable, so every protected request after this one (Me, Logout) \"just works\" without you copy-pasting anything.\n\n**Good to know:**\n- If the email or password is wrong, you get a `401` with a deliberately generic message (`\"Invalid email or password\"`) — the API never tells you *which* one was wrong, so an attacker can't use this endpoint to check whether an email is registered.\n- This is a **public** route — no `Authorization` header needed."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+                  "    console.log(\"Token saved from Login:\", jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Success - Logged in",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"Admin123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n      \"name\": \"Admin User\",\n      \"email\": \"admin@test.com\",\n      \"role\": \"admin\"\n    },\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NGYxYTJiM2M0ZDVlNmY3YThiOWMwZDEiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDUzMTIyMDAsImV4cCI6MTcwNTkxNzAwMH0.dGhpc19pc19hX2Zha2Vfc2lnbmF0dXJlX2V4YW1wbGU\"\n  }\n}"
+            },
+            {
+              "name": "Error - Wrong credentials",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"wrongPassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid email or password\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Returns the profile of whichever user the current `{{token}}` belongs to. This is the request you'd call right after your React app loads, to check \"is there a logged-in user, and who are they?\"\n\n**What to send:** nothing in the body — just a valid `Authorization: Bearer <token>` header. This is filled in automatically from the `{{token}}` variable (see the Authorization tab), which gets set after you run Register or Login.\n\n**What you get back:** the user's `id`, `name`, `email`, `role`, and `createdAt`. The password is never included.\n\n**Good to know:**\n- This is a **protected** route. If you run this before ever logging in (so `{{token}}` is empty) or after the token has expired, you'll get a `401`.\n- This is the perfect endpoint to poll on app startup to decide whether to show the login page or the logged-in app."
+          },
+          "response": [
+            {
+              "name": "Success - Current user",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "me"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n      \"name\": \"Admin User\",\n      \"email\": \"admin@test.com\",\n      \"role\": \"admin\",\n      \"createdAt\": \"2024-01-15T10:30:00.000Z\"\n    }\n  }\n}"
+            },
+            {
+              "name": "Error - Missing/invalid token",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "me"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Not authorized, no token provided\",\n  \"errors\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logs the current user out.\n\n**What to send:** nothing — just a valid `Authorization: Bearer <token>` header (auto-filled from `{{token}}`).\n\n**Important tradeoff to understand:** this API uses JWTs, which are stateless — the server never keeps a list of \"logged in\" tokens, so it has no way to invalidate one early. This endpoint just confirms the request was authenticated and returns a success message; the *actual* logout happens on the frontend by deleting the stored token (e.g. clearing it from `localStorage`/cookies). The old token would technically still be accepted by the API if someone replayed it, right up until it naturally expires (`JWT_EXPIRE`). That's a normal, accepted tradeoff for simple JWT auth — just make sure your React app always deletes its copy of the token here.\n\n**Good to know:**\n- This is a **protected** route, so it behaves like Me: no/invalid token → `401`."
+          },
+          "response": [
+            {
+              "name": "Success - Logged out",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "logout"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"message\": \"Logged out successfully\"\n  }\n}"
+            },
+            {
+              "name": "Error - Missing/invalid token",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "logout"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Not authorized, no token provided\",\n  \"errors\": []\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ]
+}
