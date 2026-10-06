@@ -2,7 +2,7 @@ const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-
+const fs = require("fs");
 const routes = require("./routes");
 const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
@@ -12,9 +12,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serves uploaded product images (see src/middleware/upload.js) at
-// /uploads/products/<filename> - the URL saved on Product.image/images.
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+// تحديد مجلد الـ uploads ليكون متوافقاً مع Vercel (/tmp) أو المحلي
+const uploadDir = process.env.VERCEL
+  ? path.join("/tmp", "uploads")
+  : path.join(__dirname, "..", "uploads");
+
+// إنشاء المجلد إذا لم يكن موجوداً لتفادي خطأ ENOENT
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (err) {
+  console.log("Uploads dir warning:", err.message);
+}
+
+// Serves uploaded product images
+app.use("/uploads", express.static(uploadDir));
 
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));

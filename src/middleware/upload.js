@@ -3,7 +3,13 @@ const path = require("path");
 const multer = require("multer");
 
 const UPLOAD_DIR = path.join(__dirname, "..", "..", "uploads", "products");
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const uploadDir = process.env.VERCEL
+  ? path.join("/tmp", "uploads", "products")
+  : path.join(__dirname, "..", "..", "uploads", "products");
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
