@@ -23,9 +23,7 @@ app.use(async (req, res, next) => {
 });
 
 // تحديد مجلد الـ uploads ليكون متوافقاً مع Vercel (/tmp) أو المحلي
-const uploadDir = process.env.VERCEL
-  ? path.join("/tmp", "uploads")
-  : path.join(__dirname, "..", "uploads");
+const uploadDir = path.join(__dirname, "..", "uploads");
 
 // إنشاء المجلد إذا لم يكن موجوداً لتفادي خطأ ENOENT
 try {

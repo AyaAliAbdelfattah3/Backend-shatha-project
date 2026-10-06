@@ -22,24 +22,13 @@
 
 // module.exports = connectDB;
 
-const dns = require("dns");
 const mongoose = require("mongoose");
 
-// قراءة المتغير بكلتا التسميتين لضمان عمله في كل الحالات
 const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
-
-if (MONGO_URI?.startsWith("mongodb+srv://")) {
-  try {
-    dns.setServers(["8.8.8.8", "1.1.1.1"]);
-  } catch (dnsErr) {
-    console.warn("DNS setServers warning:", dnsErr.message);
-  }
-}
 
 let isConnected = false;
 
 const connectDB = async () => {
-  // إذا كان متصلاً بالفعل، لا تقم بإعادة الاتصال
   if (isConnected || mongoose.connection.readyState >= 1) {
     isConnected = true;
     return;
@@ -55,7 +44,6 @@ const connectDB = async () => {
     console.log(`MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`MongoDB connection error: ${error.message}`);
-    // عدم استخدام process.exit(1) هنا لتفادي كراش بيئة Vercel
     throw error;
   }
 };
