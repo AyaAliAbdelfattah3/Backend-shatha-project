@@ -12,8 +12,7 @@ router.use("/auth", authRoutes);
 router.use("/products", productRoutes);
 router.use("/users", userRoutes);
 router.use("/cart", cartRoutes);
-router.use("/orders", (req, res) => res.json({ message: "Orders path reached!" }));
-
+router.use("/orders", orderRoutes)
 // Future lectures plug in here, e.g.:
 // router.use("/orders", orderRoutes);
 
