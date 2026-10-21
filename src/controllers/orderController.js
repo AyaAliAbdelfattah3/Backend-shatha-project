@@ -1,5 +1,8 @@
 const Order = require("../models/Order");
 
+const User = require("../models/User"); // ضيف السطر ده
+const Product = require("../models/Product"); // وضيف السطر ده
+
 // 1. جلب كل الطلبات (للأدمن)
 exports.getAllOrders = async (req, res) => {
   try {
