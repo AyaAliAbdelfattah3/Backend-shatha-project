@@ -1,7 +1,7 @@
 const Order = require("../models/Order");
-
-const User = require("../models/User"); // ضيف السطر ده
-const Product = require("../models/Product"); // وضيف السطر ده
+// السطرين دول مهمين جداً عشان الـ populate يشتغل في Vercel من غير مشاكل
+require("../models/User");
+require("../models/Product");
 
 // 1. جلب كل الطلبات (للأدمن)
 exports.getAllOrders = async (req, res) => {
