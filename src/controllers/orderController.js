@@ -47,6 +47,18 @@ exports.createOrder = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+// @desc    Get logged in user orders
+// @route   GET /api/orders/myorders
+// @access  Private (User)
+exports.getMyOrders = async (req, res) => {
+  try {
+    // بنجيب الطلبات اللي الـ user بتاعها هو نفس العميل اللي داخل
+    const orders = await Order.find({ user: req.user._id }).sort("-createdAt");
+    res.status(200).json({ success: true, data: { orders } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 // 2. تعديل حالة الطلب (للأدمن)
 exports.updateOrderStatus = async (req, res) => {
   try {

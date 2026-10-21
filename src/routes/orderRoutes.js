@@ -4,15 +4,21 @@ const {
   getAllOrders,
   updateOrderStatus,
   deleteOrder,
-  createOrder, // <--- ضيف دي
+  createOrder, 
+  getMyOrders, // <--- ضيف دي
 } = require("../controllers/orderController");
 
 const { protect, isAdmin } = require("../middleware/auth"); 
 
-// --- مسارات محتاجة تسجيل دخول (للعملاء) ---
-router.post("/", protect, createOrder); // <--- ضيف السطر ده
+// ==========================================
+// 1. مسارات العميل (محتاجة تسجيل دخول فقط)
+// ==========================================
+router.post("/", protect, createOrder); 
+router.get("/myorders", protect, getMyOrders); // <--- المسار الجديد للعميل
 
-// --- مسارات محتاجة تسجيل دخول + صلاحية أدمن ---
+// ==========================================
+// 2. مسارات الأدمن (محتاجة تسجيل دخول + صلاحية أدمن)
+// ==========================================
 router.use(protect);
 router.use(isAdmin);
 
