@@ -44,8 +44,7 @@ if (process.env.NODE_ENV !== "test") {
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    data: { message: "E-commerce training API is running" },
-  });
+data: { message: "E-commerce training API is running - V2" },  });
 });
 
 app.use("/api", routes);
