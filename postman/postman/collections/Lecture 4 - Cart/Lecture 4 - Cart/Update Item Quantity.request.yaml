@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Sets a cart line's quantity to an exact value (this is a **set**, not an increment like Add Item — use this for the +/- steppers on a cart page). This is what changing the quantity input on a `/cart` page submits to.
+
+  **What to send:** the product's id in the URL, and the new `quantity` in the body. `quantity` must be at least 1 — to remove an item entirely, use **Remove Item from Cart** instead of sending `quantity: 0`.
+
+  **Good to know:**
+  - Requires login; `401` without a token.
+  - If the product isn't currently in the cart, you get `404` — see the saved error example. Use **Add Item to Cart** to add it first.
+  - `quantity` missing, non-numeric, or less than 1 returns `400`.
+url: "{{baseUrl}}/cart/items/{{productId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "quantity": 3
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Update Item Quantity.resources/examples
+order: 3000

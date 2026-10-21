@@ -1,0 +1,37 @@
+$kind: http-request
+description: |-
+  Logs an existing user in and returns a JWT.
+
+  **What to send:** `email` and `password` as JSON in the body. The example uses the seeded admin account (`npm run seed`) — swap in any account you've registered.
+
+  **What you get back:** the user's profile plus a `token`. This request's Tests tab automatically saves that token into the `{{token}}` collection variable, so every protected request after this one (Me, Logout) "just works" without you copy-pasting anything.
+
+  **Good to know:**
+  - If the email or password is wrong, you get a `401` with a deliberately generic message (`"Invalid email or password"`) — the API never tells you *which* one was wrong, so an attacker can't use this endpoint to check whether an email is registered.
+  - This is a **public** route — no `Authorization` header needed.
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "admin@test.com",
+      "password": "Admin123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+      if (pm.response.code === 200) {
+          const jsonData = pm.response.json();
+          pm.collectionVariables.set("token", jsonData.data.token);
+          console.log("Token saved from Login:", jsonData.data.token);
+      }
+    language: text/javascript
+examples: ./.resources/Login.resources/examples
+order: 2000

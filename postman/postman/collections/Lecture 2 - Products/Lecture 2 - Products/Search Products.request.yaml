@@ -1,0 +1,15 @@
+$kind: http-request
+description: |-
+  Full-text search across a product's `name` and `description` fields, using MongoDB's `$text` index (fast — not a slow regex scan).
+
+  **Query param:** `search` — try `headphones`, `coffee`, `yoga`, etc.
+
+  Combine it with any other filter, e.g. `?search=shoes&category=Clothing`.
+
+  **Good to know:** if nothing matches, you still get a normal `200` response with an empty `products` array and `totalProducts: 0` — that's not an error, it's just "no results" (see the second saved example).
+url: "{{baseUrl}}/products?search=headphones"
+method: GET
+queryParams:
+  search: headphones
+examples: ./.resources/Search Products.resources/examples
+order: 2000

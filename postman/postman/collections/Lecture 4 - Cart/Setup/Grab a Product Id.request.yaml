@@ -1,0 +1,26 @@
+$kind: http-request
+description: |-
+  Convenience request (from the Lecture 2 - Products collection) that returns just one product, so you have a real `id` to use as `productId` in **Add Item**, **Update Item Quantity**, and **Remove Item** below.
+
+  Its Tests tab automatically copies that id into the `{{productId}}` collection variable. Run it once after seeding, or whenever you want to switch which product you're adding to the cart.
+url: "{{baseUrl}}/products?limit=1"
+method: GET
+queryParams:
+  limit: "1"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+      if (pm.response.code === 200) {
+          const jsonData = pm.response.json();
+          const product = jsonData.data.products[0];
+          if (product) {
+              pm.collectionVariables.set("productId", product.id);
+              console.log("productId saved:", product.id);
+          }
+      }
+    language: text/javascript
+order: 2000

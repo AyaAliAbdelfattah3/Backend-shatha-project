@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Permanently deletes a user account. There's no soft-delete/undo, so treat it as irreversible.
+
+  **What to send:** nothing in the body — just the user's `id` in the URL, plus the admin bearer token.
+
+  **Good to know:**
+  - **Admin-only**: `403` for a non-admin token.
+  - An admin **cannot delete their own account** through this endpoint (`400 Bad Request`) — same safeguard as Update User Role.
+  - Deleting an `id` that doesn't exist returns `404 User not found`.
+url: "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d3"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Delete User (Admin).resources/examples
+order: 4000

@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Removes one product line from the cart entirely, regardless of its quantity. This is what a cart page's "Remove" / trash-icon button calls.
+
+  **What to send:** nothing in the body — just the product's id in the URL.
+
+  **What you get back:** the updated cart (same shape as **Get My Cart**), so you can re-render the cart immediately.
+
+  **Good to know:**
+  - Requires login; `401` without a token.
+  - Removing a `productId` that isn't currently in the cart returns `404` rather than a false "success".
+url: "{{baseUrl}}/cart/items/{{productId}}"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Remove Item from Cart.resources/examples
+order: 4000

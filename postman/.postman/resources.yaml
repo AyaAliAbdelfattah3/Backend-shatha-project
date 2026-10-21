@@ -1,0 +1,25 @@
+# Use this workspace to collaborate
+workspace:
+  id: 63a83020-29f3-474b-9e4c-65669a16f680
+
+localResources:
+  collections:
+    - ../Lecture1-Authentication.postman_collection.json
+    - ../Lecture2-Products.postman_collection.json
+    - ../Lecture3-Users.postman_collection.json
+    - ../Lecture4-Cart.postman_collection.json
+  environments:
+    - ../Lecture1-Environment.postman_environment.json
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/Lecture 1 - Authentication: a50e09cf-2477-40ab-b796-fdfc6c4436c4
+    ../postman/collections/Lecture 3 - Users: 37efb01a-d0d8-4fbe-b865-e8571305003f
+    ../postman/collections/Lecture 2 - Products: 2748182d-9fd7-434d-956a-785df0581769
+    ../postman/collections/Lecture 4 - Cart: 47133b83-2e65-4d26-acea-125df7e3b943
+    ../postman/collections/Lecture 1 - Authentication Copy: c82695d3-f9aa-4ac7-8f6d-09165b80b4e5
+    ../postman/collections/Lecture 3 - Users Copy: 748927d0-c478-4d21-8eae-cf5fe80d3a1f
+    ../postman/collections/Lecture 4 - Cart Copy: 590a9069-07c0-4cd2-9079-582da301adbd
+    ../postman/collections/Lecture 2 - Products Copy: 11ada9d2-8088-402d-b47e-667a2d07c2c1

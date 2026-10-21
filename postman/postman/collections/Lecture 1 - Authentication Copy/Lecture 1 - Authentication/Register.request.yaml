@@ -1,0 +1,39 @@
+$kind: http-request
+description: |-
+  Creates a brand new account.
+
+  **What to send:** `name`, `email`, and `password` (min 6 characters) as JSON in the body.
+
+  **What you get back:** the created user (never the password) plus a JWT `token` you can use immediately to call protected routes — that's why this request's Tests tab also auto-saves the token, just like Login.
+
+  **Good to know:**
+  - Every account created here always gets the `"user"` role, even if you try to send `"role": "admin"` in the body — the backend ignores that field on purpose. There is no self-service way to become an admin.
+  - `email` must be unique. Trying to register an email that already exists returns a `400` with a validation-style error (see the saved "Duplicate Email" example response).
+  - This is a **public** route — no `Authorization` header needed.
+url: "{{baseUrl}}/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Sarah Connor",
+      "email": "sarah.connor@example.com",
+      "password": "Passw0rd!"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201", function () {
+          pm.response.to.have.status(201);
+      });
+
+      if (pm.response.code === 201) {
+          const jsonData = pm.response.json();
+          pm.collectionVariables.set("token", jsonData.data.token);
+          console.log("Token saved from Register:", jsonData.data.token);
+      }
+    language: text/javascript
+examples: ./.resources/Register.resources/examples
+order: 1000

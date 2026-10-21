@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Returns a single user by id.
+
+  **What to send:** the Mongo `id` in the URL path (copy it from **Get All Users**), plus the admin bearer token.
+
+  **Good to know:**
+  - **Admin-only**, same as Get All Users: `403` for a non-admin token.
+  - If the `id` doesn't match any user, you get a clean `404` — see the saved error example.
+url: "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d2"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Get User By ID (Admin).resources/examples
+order: 2000

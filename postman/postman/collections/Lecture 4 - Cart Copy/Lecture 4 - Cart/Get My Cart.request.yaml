@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Returns the logged-in user's cart, with each item's product fully populated and per-item/cart totals computed. This is what a `/cart` page would call on load.
+
+  **Good to know:**
+  - **Requires login** — `401` without a valid `{{token}}`.
+  - If the user has never added anything, you still get a `200` back with an empty cart (`items: []`, `totalItems: 0`, `totalPrice: 0`) — a cart is created lazily on first use, not at registration.
+  - If a product in the cart was later deleted by an admin, it's silently dropped from the response rather than causing an error.
+url: "{{baseUrl}}/cart"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Get My Cart.resources/examples
+order: 1000

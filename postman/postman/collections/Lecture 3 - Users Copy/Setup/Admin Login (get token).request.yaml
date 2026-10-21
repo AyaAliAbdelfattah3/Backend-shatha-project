@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Logs in as the seeded admin account and grabs a JWT you can use for every request in the **Lecture 3 - Users** folder.
+
+  **Run this once before touching those requests.** Its Tests tab automatically copies the token from the response into the `{{token}}` collection variable, so every request below sends `Authorization: Bearer {{token}}` for you — nothing to copy/paste.
+
+  **Good to know:**
+  - The seeded admin is `admin@test.com` / `Admin123` (created by `npm run seed` on the backend).
+  - A normal (non-admin) account can log in fine here too, but its token will get a `403 Forbidden` on every request in this collection — see those requests' saved error examples.
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "admin@test.com",
+      "password": "Admin123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+      if (pm.response.code === 200) {
+          const jsonData = pm.response.json();
+          pm.collectionVariables.set("token", jsonData.data.token);
+          console.log("Admin token saved:", jsonData.data.token);
+      }
+    language: text/javascript
+examples: ./.resources/Admin Login (get token).resources/examples
+order: 1000

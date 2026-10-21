@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Logs the current user out.
+
+  **What to send:** nothing — just a valid `Authorization: Bearer <token>` header (auto-filled from `{{token}}`).
+
+  **Important tradeoff to understand:** this API uses JWTs, which are stateless — the server never keeps a list of "logged in" tokens, so it has no way to invalidate one early. This endpoint just confirms the request was authenticated and returns a success message; the *actual* logout happens on the frontend by deleting the stored token (e.g. clearing it from `localStorage`/cookies). The old token would technically still be accepted by the API if someone replayed it, right up until it naturally expires (`JWT_EXPIRE`). That's a normal, accepted tradeoff for simple JWT auth — just make sure your React app always deletes its copy of the token here.
+
+  **Good to know:**
+  - This is a **protected** route, so it behaves like Me: no/invalid token → `401`.
+url: "{{baseUrl}}/auth/logout"
+method: POST
+body:
+  type: json
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Logout.resources/examples
+order: 4000

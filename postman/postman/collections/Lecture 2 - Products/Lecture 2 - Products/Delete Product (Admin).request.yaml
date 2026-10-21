@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Permanently deletes a product. This is what the admin dashboard's "Delete" button calls — there's no soft-delete/undo in this lecture, so treat it as irreversible.
+
+  **What to send:** nothing in the body — just the product's `id` in the URL, plus the admin bearer token (auto-filled from `{{token}}`).
+
+  **Good to know:**
+  - **Admin-only**: a non-admin token gets `403 Forbidden` (same behavior as Create/Update).
+  - Deleting an `id` that doesn't exist returns `404 Product not found` rather than a false "success" — useful for catching a stale/already-deleted id on the frontend.
+url: "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a2"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Delete Product (Admin).resources/examples
+order: 13000

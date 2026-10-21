@@ -1,0 +1,14 @@
+$kind: http-request
+description: |-
+  Returns a single product — this is the request behind a Product Details page.
+
+  **What to send:** the Mongo `id` in the URL path (copy it from any product object returned by the other requests in this folder).
+
+  **Good to know:**
+  - This is a **public** route — no token needed.
+  - If the `id` is a validly-formatted Mongo ObjectId but doesn't match any product, you get a clean `404` (see the saved error example) — this is the case you should handle on the frontend with a "Product not found" page.
+  - If the `id` isn't even a valid ObjectId format (e.g. you pasted a slug or a random string), you instead get a generic `400 Invalid _id` from the shared error handler.
+url: "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a1"
+method: GET
+examples: ./.resources/Get Product By ID.resources/examples
+order: 9000

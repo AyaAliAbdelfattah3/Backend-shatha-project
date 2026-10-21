@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/cart/items/64f1a2b3c4d5e6f7a8b9c1a1"
+  method: DELETE
+  headers:
+    Authorization: Bearer {{token}}
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "cart": {
+            "id": "64f1a2b3c4d5e6f7a8b9c2a1",
+            "items": [],
+            "totalItems": 0,
+            "totalPrice": 0
+          }
+        }
+      }
+order: 1000

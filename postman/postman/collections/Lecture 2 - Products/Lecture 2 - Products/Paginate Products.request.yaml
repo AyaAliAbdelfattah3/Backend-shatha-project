@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  Controls which "page" of results comes back.
+
+  **Query params:**
+  - `page` — defaults to `1`
+  - `limit` — items per page, defaults to `10` (capped at `100` server-side so a typo can't accidentally ask for the entire catalog)
+
+  This example asks for page 2 with 5 items per page — i.e. products 6-10 out of the total.
+
+  Read `data.page` / `data.totalPages` / `data.totalProducts` from the response to build "Page 2 of 3" style pagination controls.
+url: "{{baseUrl}}/products?page=2&limit=5"
+method: GET
+queryParams:
+  page: "2"
+  limit: "5"
+examples: ./.resources/Paginate Products.resources/examples
+order: 6000

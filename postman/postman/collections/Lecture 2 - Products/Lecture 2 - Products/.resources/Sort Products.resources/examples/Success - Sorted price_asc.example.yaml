@@ -1,0 +1,81 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/products?sort=price_asc"
+  method: GET
+  queryParams:
+    sort: price_asc
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "products": [
+            {
+              "id": "64f1a2b3c4d5e6f7a8b9c1a2",
+              "name": "Portable Bluetooth Speaker",
+              "slug": "portable-bluetooth-speaker",
+              "description": "Compact, splash-proof Bluetooth speaker with 12 hours of playtime and surprisingly deep bass for its size.",
+              "price": 49.99,
+              "image": "https://picsum.photos/seed/speaker/600/600",
+              "images": [],
+              "category": "Electronics",
+              "brand": "SoundCore",
+              "countInStock": 60,
+              "rating": 4.1,
+              "numReviews": 54,
+              "isFeatured": false,
+              "createdAt": "2026-07-20T09:00:00.000Z",
+              "updatedAt": "2026-07-20T09:00:00.000Z"
+            },
+            {
+              "id": "64f1a2b3c4d5e6f7a8b9c1a1",
+              "name": "Wireless Bluetooth Headphones",
+              "slug": "wireless-bluetooth-headphones",
+              "description": "Over-ear wireless headphones with active noise cancellation, 30-hour battery life, and a foldable design for easy travel.",
+              "price": 79.99,
+              "image": "https://picsum.photos/seed/headphones/600/600",
+              "images": [
+                "https://picsum.photos/seed/headphones-2/600/600",
+                "https://picsum.photos/seed/headphones-3/600/600"
+              ],
+              "category": "Electronics",
+              "brand": "SoundCore",
+              "countInStock": 45,
+              "rating": 4.5,
+              "numReviews": 128,
+              "isFeatured": true,
+              "createdAt": "2026-07-20T09:00:00.000Z",
+              "updatedAt": "2026-07-20T09:00:00.000Z"
+            },
+            {
+              "id": "64f1a2b3c4d5e6f7a8b9c1a3",
+              "name": "Smart Fitness Watch",
+              "slug": "smart-fitness-watch",
+              "description": "Track heart rate, sleep, and workouts with this water-resistant smart watch. Includes a 7-day battery and phone notifications.",
+              "price": 129.99,
+              "image": "https://picsum.photos/seed/smartwatch/600/600",
+              "images": [
+                "https://picsum.photos/seed/smartwatch-2/600/600"
+              ],
+              "category": "Electronics",
+              "brand": "FitTrack",
+              "countInStock": 30,
+              "rating": 4.3,
+              "numReviews": 96,
+              "isFeatured": false,
+              "createdAt": "2026-07-20T09:00:00.000Z",
+              "updatedAt": "2026-07-20T09:00:00.000Z"
+            }
+          ],
+          "page": 1,
+          "totalPages": 2,
+          "totalProducts": 14
+        }
+      }
+order: 1000

@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Controls the sort order of results.
+
+  **Query param `sort`, one of:**
+  - `price_asc` — cheapest first
+  - `price_desc` — most expensive first
+  - `newest` — most recently added first (this is also the **default** when `sort` is omitted)
+  - `rating` — highest rated first
+
+  Any other/unrecognized value silently falls back to `newest`.
+url: "{{baseUrl}}/products?sort=price_asc"
+method: GET
+queryParams:
+  sort: price_asc
+examples: ./.resources/Sort Products.resources/examples
+order: 5000

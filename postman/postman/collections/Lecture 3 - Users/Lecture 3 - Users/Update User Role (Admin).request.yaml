@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Promotes or demotes a user by setting their `role`. This is the endpoint to use instead of editing the database by hand — the seeded admin (`admin@test.com`) can promote any other account to `"admin"` here.
+
+  **What to send:** `role`, either `"user"` or `"admin"`, as JSON in the body.
+
+  **Good to know:**
+  - **Admin-only**: `403` for a non-admin token.
+  - An admin **cannot change their own role** through this endpoint (`400 Bad Request`) — this prevents an admin from accidentally locking themselves out. Use a *different* admin account (or another admin) to change someone's role, never your own.
+  - Sending anything other than `"user"`/`"admin"` fails validation with `400` (see the saved example).
+  - If the `id` doesn't match any user, you get `404`.
+  - After promoting a user, they must **log in again** to get a fresh JWT — the role in an already-issued token doesn't change retroactively (the token itself never changes; `protect` re-reads the role from the database on every request, but the login response `token` still reflects the role at the time it was issued).
+url: "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d2/role"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "role": "admin"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Update User Role (Admin).resources/examples
+order: 3000

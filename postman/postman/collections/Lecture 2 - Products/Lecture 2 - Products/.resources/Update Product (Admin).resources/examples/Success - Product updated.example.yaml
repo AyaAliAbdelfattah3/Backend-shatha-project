@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a2"
+  method: PUT
+  headers:
+    Content-Type: application/json
+    Authorization: Bearer {{token}}
+  body:
+    type: text
+    content: |-
+      {
+        "price": 69.99,
+        "countInStock": 25,
+        "isFeatured": true
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "product": {
+            "id": "64f1a2b3c4d5e6f7a8b9c1a2",
+            "name": "Portable Bluetooth Speaker",
+            "slug": "portable-bluetooth-speaker",
+            "description": "Compact, splash-proof Bluetooth speaker with 12 hours of playtime and surprisingly deep bass for its size.",
+            "price": 69.99,
+            "image": "https://picsum.photos/seed/speaker/600/600",
+            "images": [],
+            "category": "Electronics",
+            "brand": "SoundCore",
+            "countInStock": 25,
+            "rating": 4.1,
+            "numReviews": 54,
+            "isFeatured": true,
+            "createdAt": "2026-07-20T09:00:00.000Z",
+            "updatedAt": "2026-07-29T09:05:00.000Z"
+          }
+        }
+      }
+order: 1000

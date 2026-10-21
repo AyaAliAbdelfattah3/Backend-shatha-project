@@ -1,0 +1,6 @@
+name: Lecture 1 - Auth Environment
+values:
+  - key: baseUrl
+    value: 'http://localhost:5000/api'
+  - key: baseUrl
+    value: ''

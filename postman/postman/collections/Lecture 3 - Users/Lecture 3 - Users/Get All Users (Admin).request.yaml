@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Returns every registered user, newest first. This is what the admin dashboard's "Users" table loads.
+
+  **What to send:** nothing — just an admin `Authorization: Bearer {{token}}` header (auto-filled, run **Setup → Admin Login** first).
+
+  **Good to know:**
+  - **Admin-only**: a non-admin token gets `403 Forbidden` — see the saved error example.
+  - Passwords are never included in the response (the schema marks that field `select: false`).
+url: "{{baseUrl}}/users"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Get All Users (Admin).resources/examples
+order: 1000

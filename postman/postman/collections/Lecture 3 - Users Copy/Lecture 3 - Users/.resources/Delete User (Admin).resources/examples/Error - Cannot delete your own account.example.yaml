@@ -1,0 +1,20 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/users/64f1a2b3c4d5e6f7a8b9c0d1"
+  method: DELETE
+  headers:
+    Authorization: Bearer {{token}}
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "success": false,
+        "message": "You cannot delete your own account",
+        "errors": []
+      }
+order: 2000

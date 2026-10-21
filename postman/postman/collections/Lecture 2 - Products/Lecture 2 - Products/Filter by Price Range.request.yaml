@@ -1,0 +1,16 @@
+$kind: http-request
+description: |-
+  Filters products whose `price` falls within a range.
+
+  **Query params (both optional, independent):**
+  - `minPrice` — only products priced at or above this
+  - `maxPrice` — only products priced at or below this
+
+  Send just one of them for an open-ended range (e.g. `?minPrice=100` = "$100 and up"), or both for a bounded range like the example here (`$50–$150`).
+url: "{{baseUrl}}/products?minPrice=50&maxPrice=150"
+method: GET
+queryParams:
+  minPrice: "50"
+  maxPrice: "150"
+examples: ./.resources/Filter by Price Range.resources/examples
+order: 4000

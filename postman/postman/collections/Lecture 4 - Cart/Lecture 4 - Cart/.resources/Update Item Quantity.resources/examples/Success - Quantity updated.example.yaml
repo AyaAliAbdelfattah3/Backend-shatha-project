@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/cart/items/64f1a2b3c4d5e6f7a8b9c1a1"
+  method: PATCH
+  headers:
+    Content-Type: application/json
+    Authorization: Bearer {{token}}
+  body:
+    type: text
+    content: |-
+      {
+        "quantity": 3
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "cart": {
+            "id": "64f1a2b3c4d5e6f7a8b9c2a1",
+            "items": [
+              {
+                "product": {
+                  "id": "64f1a2b3c4d5e6f7a8b9c1a1",
+                  "name": "Wireless Bluetooth Headphones",
+                  "slug": "wireless-bluetooth-headphones",
+                  "price": 79.99,
+                  "image": "https://picsum.photos/seed/headphones/600/600",
+                  "category": "Electronics",
+                  "countInStock": 45
+                },
+                "quantity": 3,
+                "subtotal": 239.97
+              }
+            ],
+            "totalItems": 3,
+            "totalPrice": 239.97
+          }
+        }
+      }
+order: 1000

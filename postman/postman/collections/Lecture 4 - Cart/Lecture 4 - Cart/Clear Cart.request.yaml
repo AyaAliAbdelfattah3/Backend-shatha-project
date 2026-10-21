@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Empties the logged-in user's cart completely — every item, in one call. This is what an "Empty Cart" button calls, and what you'd typically call right after a successful checkout in a future lecture.
+
+  **What to send:** nothing — no body, no params.
+
+  **Good to know:**
+  - Requires login; `401` without a token.
+  - Idempotent: calling it on an already-empty cart still returns `200` with an empty cart, never an error.
+url: "{{baseUrl}}/cart"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Clear Cart.resources/examples
+order: 5000

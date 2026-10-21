@@ -1,0 +1,28 @@
+$kind: http-request
+description: |-
+  Updates an existing product. This is what the admin dashboard's "Edit Product" form submits to.
+
+  **What to send:** only the fields you want to change (this is a partial update, like the example body here which just adjusts `price`, `countInStock`, and `isFeatured`) — you don't have to resend the entire product. Any of the same fields accepted by **Create Product** can be updated.
+
+  **Good to know:**
+  - **Admin-only**, same as Create: needs `{{token}}` to be an admin JWT (run **Setup → Admin Login** first), otherwise `403`.
+  - If you change `name`, the `slug` is automatically regenerated to match.
+  - If the `id` in the URL doesn't match any product, you get a `404` — see the saved error example.
+url: "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a2"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "price": 69.99,
+      "countInStock": 25,
+      "isFeatured": true
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Update Product (Admin).resources/examples
+order: 12000

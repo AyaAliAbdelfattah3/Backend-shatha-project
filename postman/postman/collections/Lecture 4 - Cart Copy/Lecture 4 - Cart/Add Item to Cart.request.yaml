@@ -1,0 +1,32 @@
+$kind: http-request
+description: |-
+  Adds a product to the logged-in user's cart, or increases its quantity if it's already in there. This is what a product card / product details page's "Add to Cart" button submits to.
+
+  **Body:**
+  - `productId` (required) — a real product id, e.g. from **Setup → Grab a Product Id** or the Lecture 2 - Products collection
+  - `quantity` (optional, defaults to `1`, must be ≥ 1)
+
+  **What you get back:** the whole updated cart (same shape as **Get My Cart**), not just the added item — convenient for immediately re-rendering a cart badge/dropdown.
+
+  **Good to know:**
+  - Adding a `productId` that's **already** in the cart doesn't create a duplicate line — it **adds** the new `quantity` onto the existing one (send `quantity: 2` twice for the same product and you'll end up with `quantity: 4`).
+  - Requires login; `401` without a token.
+  - A `productId` that isn't a real product returns `404`.
+  - An invalid/malformed `productId`, or `quantity` less than 1, returns `400` with a per-field `errors` array.
+url: "{{baseUrl}}/cart/items"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "productId": "{{productId}}",
+      "quantity": 2
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Add Item to Cart.resources/examples
+order: 2000

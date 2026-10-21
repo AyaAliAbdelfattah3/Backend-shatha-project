@@ -1,0 +1,13 @@
+$kind: http-request
+description: |-
+  Returns only products marked `isFeatured: true` — this is what feeds the "Featured" section on the home page.
+
+  **Query param:** `featured=true`.
+
+  **Good to know:** the check is strictly `featured === "true"`. Sending `featured=false`, `featured=0`, or anything else does **not** filter out featured products — it's simply treated as "not set" and you get the full unfiltered list back. If you want "only non-featured", you'd need to filter that client-side (there's no server param for it in this lecture).
+url: "{{baseUrl}}/products?featured=true"
+method: GET
+queryParams:
+  featured: "true"
+examples: ./.resources/Featured Products Only.resources/examples
+order: 7000

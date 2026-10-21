@@ -1,0 +1,52 @@
+$kind: http-request
+description: |-
+  Same endpoint as **Create Product (Admin)**, but sends actual image files from your device instead of image URLs.
+
+  **What to send:** `multipart/form-data` (select this request's Body tab → `form-data`, already configured below):
+  - Text fields: `name`, `description`, `price`, `category`, `brand`, `countInStock`, `isFeatured` — identical to the JSON version.
+  - File fields: `image` (pick 1 file — this becomes the main image) and `images` (you can attach up to 5 files — the gallery). Click the `image`/`images` row, switch its type to "File" if it isn't already, then click "Select Files".
+
+  **What you get back:** the created product. `image`/`images` in the response are server paths like `/uploads/products/<generated-filename>.jpg` — prefix them with your backend origin (e.g. `http://localhost:5000`) to load them in a browser/`<img>` tag; `{{baseUrl}}` already includes `/api`, so don't reuse it for the image URL.
+
+  **Good to know:**
+  - **Admin-only**, same as the JSON version: `403` for a non-admin token.
+  - Only `image/jpeg`, `image/png`, `image/webp`, `image/gif` are accepted; anything else is rejected with `400`.
+  - Each file is capped at 5MB.
+  - You can mix modes across requests (some products via URL, others via upload) — the backend stores whichever `image`/`images` value it ends up with the same way either way.
+url: "{{baseUrl}}/products"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: name
+      value: Ceramic Pour-Over Coffee Dripper
+    - type: text
+      key: description
+      value: A hand-glazed ceramic pour-over dripper that fits most standard mug sizes, for a cleaner cup than drip machines.
+    - type: text
+      key: price
+      value: "22.5"
+    - type: text
+      key: category
+      value: Home & Kitchen
+    - type: text
+      key: brand
+      value: BrewWell
+    - type: text
+      key: countInStock
+      value: "40"
+    - type: text
+      key: isFeatured
+      value: "false"
+    - type: file
+      key: image
+      src: []
+    - type: file
+      key: images
+      src: []
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+order: 11000

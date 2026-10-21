@@ -1,0 +1,13 @@
+$kind: http-request
+description: |-
+  Returns the list of **distinct** category names currently in use across all products — exactly what you need to build the category filter dropdown or the home page's category tiles, without hardcoding category names in the frontend.
+
+  **What you get back:** a plain array of strings, not an array of objects.
+
+  **Good to know:**
+  - This is a **public** route — no token needed.
+  - There's no error case for this endpoint: if there happen to be zero products in the database, it just returns `"data": []`, still with `"success": true`.
+url: "{{baseUrl}}/products/categories/list"
+method: GET
+examples: ./.resources/Get Categories List.resources/examples
+order: 8000

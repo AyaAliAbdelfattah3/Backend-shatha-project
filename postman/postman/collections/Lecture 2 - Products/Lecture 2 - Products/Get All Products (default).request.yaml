@@ -1,0 +1,27 @@
+$kind: http-request
+description: |-
+  Returns a **paginated** list of products. This is the request your product listing / home page grid would call with no filters applied.
+
+  **Defaults when you send no query params:** `page=1`, `limit=10`, sorted newest-first.
+
+  **Response shape:**
+  ```jsonc
+  {
+    "success": true,
+    "data": {
+      "products": [ ... up to `limit` items ... ],
+      "page": 1,
+      "totalPages": 2,
+      "totalProducts": 14
+    }
+  }
+  ```
+  Use `page` + `totalPages` to build pager buttons, and `totalProducts` for a "showing X of Y results" label.
+
+  **This route is public** — no `Authorization` header needed, and every combinable filter is optional. See the other requests in this folder (**Search**, **Filter by Category**, **Filter by Price Range**, **Sort**, **Paginate**, **Featured Only**) for how to use each query param — they all hit this exact same endpoint, just with different query strings.
+
+  **Good to know:** this endpoint never returns an error response — unrecognized or malformed query params are simply ignored and it falls back to defaults, so there's no saved error example here (unlike the other 5 endpoints in this collection).
+url: "{{baseUrl}}/products"
+method: GET
+examples: ./.resources/Get All Products (default).resources/examples
+order: 1000

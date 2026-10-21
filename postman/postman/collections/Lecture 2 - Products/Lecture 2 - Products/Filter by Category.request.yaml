@@ -1,0 +1,13 @@
+$kind: http-request
+description: |-
+  Filters products by an **exact** category match.
+
+  **Query param:** `category` — must be one of the values returned by **Get Categories List** (below), e.g. `Electronics`, `Clothing`, `Home & Kitchen`, `Sports & Outdoors`. It's case-sensitive, so pull the value straight from that endpoint rather than typing it by hand.
+
+  This is what powers a category filter dropdown or sidebar on the frontend.
+url: "{{baseUrl}}/products?category=Electronics"
+method: GET
+queryParams:
+  category: Electronics
+examples: ./.resources/Filter by Category.resources/examples
+order: 3000

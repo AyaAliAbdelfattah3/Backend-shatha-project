@@ -1,0 +1,56 @@
+$kind: collection
+description: |-
+  # E-commerce Training API — Lecture 4: Cart
+
+  This collection covers the **Cart module**: a per-logged-in-user cart, persisted server-side (one `Cart` document per `User`).
+
+  ## How to use this collection
+  1. Set the `baseUrl` collection variable if your backend isn't running at the default `http://localhost:5000/api` (Collection → Variables tab).
+  2. Make sure the backend is running (`npm run dev`) and seeded (`npm run seed` — this creates the `user1@test.com` account and at least 14 sample products, whose ids you'll need for `productId`).
+  3. Run **Setup → Login (get token)** once. Its Tests tab automatically saves the returned JWT into the `{{token}}` collection variable, which every request in this collection sends as `Authorization: Bearer {{token}}` — **every cart route requires being logged in**, there is no public/guest cart on the backend.
+  4. Run **Setup → Grab a Product Id** once (or copy an `id` from the Lecture 2 - Products collection) to populate the `{{productId}}` variable used by **Add Item**, **Update Item Quantity**, and **Remove Item**.
+
+  ## Response shape
+  Every endpoint in this API replies with one of two shapes:
+
+  ```jsonc
+  // success
+  { "success": true, "data": { ... } }
+
+  // error
+  { "success": false, "message": "Human readable message", "errors": [] }
+  ```
+
+  `errors` is populated (an array of `{ field, message }`) when the failure came from input validation; otherwise it's an empty array.
+
+  ## How the cart is shaped
+  Every cart response returns the **whole cart**, already populated and totalled — there's no separate "get totals" endpoint:
+
+  ```jsonc
+  {
+    "success": true,
+    "data": {
+      "cart": {
+        "id": "...",
+        "items": [
+          {
+            "product": { "id": "...", "name": "...", "price": 79.99, "image": "...", "countInStock": 45, ... },
+            "quantity": 2,
+            "subtotal": 159.98
+          }
+        ],
+        "totalItems": 2,
+        "totalPrice": 159.98
+      }
+    }
+  }
+  ```
+
+  `subtotal`/`totalPrice` are always computed from each product's **current** price at request time (not a price snapshot from when the item was added), so a price change on the admin side is reflected immediately.
+
+  ## Note
+  This collection only covers the Cart. For Register/Login/Me/Logout see **Lecture 1 - Authentication**; for browsing/searching/filtering products (needed to get a `productId`) see **Lecture 2 - Products**.
+variables:
+  baseUrl: http://localhost:5000/api
+  token: ""
+  productId: ""

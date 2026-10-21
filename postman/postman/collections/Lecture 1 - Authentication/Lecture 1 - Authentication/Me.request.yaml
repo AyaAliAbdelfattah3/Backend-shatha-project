@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Returns the profile of whichever user the current `{{token}}` belongs to. This is the request you'd call right after your React app loads, to check "is there a logged-in user, and who are they?"
+
+  **What to send:** nothing in the body — just a valid `Authorization: Bearer <token>` header. This is filled in automatically from the `{{token}}` variable (see the Authorization tab), which gets set after you run Register or Login.
+
+  **What you get back:** the user's `id`, `name`, `email`, `role`, and `createdAt`. The password is never included.
+
+  **Good to know:**
+  - This is a **protected** route. If you run this before ever logging in (so `{{token}}` is empty) or after the token has expired, you'll get a `401`.
+  - This is the perfect endpoint to poll on app startup to decide whether to show the login page or the logged-in app.
+url: "{{baseUrl}}/auth/me"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Me.resources/examples
+order: 3000

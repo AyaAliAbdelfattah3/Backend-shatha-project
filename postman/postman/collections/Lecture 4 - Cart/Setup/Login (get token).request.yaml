@@ -1,0 +1,35 @@
+$kind: http-request
+description: |-
+  Logs in as a normal seeded user and grabs a JWT — every request in this collection needs one, since the cart always belongs to whoever is logged in (there is no guest/anonymous cart on the backend).
+
+  **Run this once before touching any other request in this collection.** Its Tests tab automatically copies the token from the response into the `{{token}}` collection variable, so every request below sends `Authorization: Bearer {{token}}` for you.
+
+  This is the same `/api/auth/login` endpoint covered in the Lecture 1 - Authentication collection; it's duplicated here (with a regular user's credentials pre-filled) so this Cart collection works standalone.
+
+  **Good to know:** an admin account works here too — the cart isn't role-restricted, it's just tied to `req.user`.
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "user1@test.com",
+      "password": "User1123"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200", function () {
+          pm.response.to.have.status(200);
+      });
+
+      if (pm.response.code === 200) {
+          const jsonData = pm.response.json();
+          pm.collectionVariables.set("token", jsonData.data.token);
+          console.log("Token saved:", jsonData.data.token);
+      }
+    language: text/javascript
+examples: ./.resources/Login (get token).resources/examples
+order: 1000

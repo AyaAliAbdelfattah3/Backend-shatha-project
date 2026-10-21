@@ -1,0 +1,42 @@
+$kind: http-request
+description: |-
+  Creates a new product. This is what the admin dashboard's "Add Product" form submits to.
+
+  **Required fields:** `name`, `description`, `price` (must be ≥ 0), `image`, `category`.
+  **Optional fields:** `images` (array, defaults to `[]`), `brand`, `countInStock` (defaults to `0`, must be ≥ 0), `isFeatured` (defaults to `false`).
+
+  **What you get back:** the created product, including its server-generated `id` and `slug` (auto-derived from `name` — you never send `slug` yourself).
+
+  **This is an admin-only route:**
+  1. Run **Setup → Admin Login (get token)** first so `{{token}}` holds a valid admin JWT.
+  2. This request already sends `Authorization: Bearer {{token}}` (see the Authorization tab) — nothing else to configure.
+
+  **Good to know:**
+  - A logged-in user whose role is `"user"` (not `"admin"`) gets a `403 Forbidden` here — see the saved error example. That's different from a `401`: `403` means "I know who you are, you're just not allowed."
+  - Missing/invalid fields return a `400` with a per-field `errors` array — also saved as an example below.
+url: "{{baseUrl}}/products"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Ceramic Pour-Over Coffee Dripper",
+      "description": "A hand-glazed ceramic pour-over dripper that fits most standard mug sizes, for a cleaner cup than drip machines.",
+      "price": 22.5,
+      "image": "https://picsum.photos/seed/pourover/600/600",
+      "images": [
+        "https://picsum.photos/seed/pourover-2/600/600"
+      ],
+      "category": "Home & Kitchen",
+      "brand": "BrewWell",
+      "countInStock": 40,
+      "isFeatured": false
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+examples: ./.resources/Create Product (Admin).resources/examples
+order: 10000

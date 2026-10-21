@@ -1,0 +1,21 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/products/64f1a2b3c4d5e6f7a8b9c1a2"
+  method: DELETE
+  headers:
+    Authorization: Bearer {{token}}
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "message": "Product deleted successfully"
+        }
+      }
+order: 1000

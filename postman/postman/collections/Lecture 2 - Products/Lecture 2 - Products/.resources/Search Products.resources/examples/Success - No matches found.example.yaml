@@ -1,0 +1,24 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/products?search=xyznotarealproduct"
+  method: GET
+  queryParams:
+    search: xyznotarealproduct
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "success": true,
+        "data": {
+          "products": [],
+          "page": 1,
+          "totalPages": 1,
+          "totalProducts": 0
+        }
+      }
+order: 2000

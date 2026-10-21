@@ -1,0 +1,37 @@
+$kind: collection
+description: |-
+  # E-commerce Training API — Lecture 3: User Management
+
+  This collection covers the **admin-only** user management endpoints: listing users, viewing a single user, promoting/demoting roles, and deleting accounts.
+
+  ## How to use this collection
+  1. Set the `baseUrl` collection variable if your backend isn't running at the default `http://localhost:5000/api` (Collection → Variables tab).
+  2. Make sure the backend is running (`npm run dev`) and seeded (`npm run seed`).
+  3. Run **Setup → Admin Login (get token)** first. Its Tests tab automatically saves the returned JWT into the `{{token}}` collection variable, which every request below sends as `Authorization: Bearer {{token}}`.
+  4. Every request in the **Lecture 3 - Users** folder is admin-only — a non-admin token gets `403 Forbidden` on all of them.
+
+  ## Response shape
+  Every endpoint in this API replies with one of two shapes:
+
+  ```jsonc
+  // success
+  { "success": true, "data": { ... } }
+
+  // error
+  { "success": false, "message": "Human readable message", "errors": [] }
+  ```
+
+  `errors` is populated (an array of `{ field, message }`) when the failure came from input validation; otherwise it's an empty array.
+
+  ## Note
+  This collection only covers user management. For Register/Login/Me/Logout, import the separate **Lecture 1 - Authentication** collection.
+variables:
+  - key: baseUrl
+    value: http://localhost:5000/api
+    disabled: false
+  - key: token
+    value: ""
+    disabled: false
+  - key: json_web_token_0z2f
+    secret: true
+    disabled: false

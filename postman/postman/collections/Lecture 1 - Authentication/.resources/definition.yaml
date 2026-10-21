@@ -1,0 +1,43 @@
+$kind: collection
+description: |-
+  # E-commerce Training API — Lecture 1: Authentication
+
+  This collection covers the 4 endpoints you'll use to build the login/signup flow for the frontend course: **Register**, **Login**, **Me**, and **Logout**.
+
+  ## How to use this collection
+
+  1. Select the **Lecture 1 - Auth Environment** environment (top-right dropdown in Postman) so `{{baseUrl}}` and `{{token}}` are available.
+      
+  2. Make sure the backend is running locally (`npm run dev`) and you've seeded test data (`npm run seed`).
+      
+  3. Run **Login** (or **Register**) first. Its "Tests" tab contains a small script that automatically copies the JWT from the response into the `token` collection variable — you do NOT need to copy/paste it manually.
+      
+  4. Once `token` is set, **Me** and **Logout** will automatically send it as `Authorization: Bearer {{token}}`.
+      
+
+  ## Response shape
+
+  Every endpoint in this API replies with one of two shapes:
+
+  ``` jsonc
+  // success
+  { "success": true, "data": { ... } }
+  // error
+  { "success": false, "message": "Human readable message", "errors": [] }
+
+   ```
+
+  `errors` is populated (an array of `{ field, message }`) when the failure came from input validation; otherwise it's an empty array.
+variables:
+  - key: baseUrl
+    value: http://localhost:5000/api
+    disabled: false
+  - key: token
+    value: ""
+    disabled: false
+  - key: json_web_token_0z2f
+    secret: true
+    disabled: false
+  - key: json_web_token_15hl
+    secret: true
+    disabled: false
