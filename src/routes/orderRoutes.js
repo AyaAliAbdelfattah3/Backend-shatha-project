@@ -6,12 +6,12 @@ const {
   deleteOrder,
 } = require("../controllers/orderController");
 
-// استيراد الميدلوير بتاع الحماية (تأكد إن المسار ده صح عندك)
-const { protect, admin } = require("../middleware/authMiddleware");
+// استخدمنا الاسم الصحيح isAdmin بدل admin
+const { protect, isAdmin } = require("../middleware/auth"); 
 
-// كل المسارات دي محتاجة تسجيل دخول + صلاحية أدمن
+// حماية المسارات
 router.use(protect);
-router.use(admin);
+router.use(isAdmin);
 
 router.get("/", getAllOrders);
 router.patch("/:id/status", updateOrderStatus);
