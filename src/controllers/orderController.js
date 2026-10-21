@@ -20,6 +20,33 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
+// @desc    Create new order
+// @route   POST /api/orders
+// @access  Private (User)
+exports.createOrder = async (req, res) => {
+  try {
+    const { items, shippingAddress, paymentMethod, totalPrice } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ success: false, message: "No order items" });
+    }
+
+    // إنشاء الطلب الجديد وربطه بالعميل اللي عامله Login
+    const order = new Order({
+      user: req.user._id, // جاي من الـ protect middleware
+      items,
+      shippingAddress,
+      paymentMethod,
+      totalPrice,
+    });
+
+    const createdOrder = await order.save();
+
+    res.status(201).json({ success: true, data: { order: createdOrder } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 // 2. تعديل حالة الطلب (للأدمن)
 exports.updateOrderStatus = async (req, res) => {
   try {

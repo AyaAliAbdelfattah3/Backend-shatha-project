@@ -4,12 +4,15 @@ const {
   getAllOrders,
   updateOrderStatus,
   deleteOrder,
+  createOrder, // <--- ضيف دي
 } = require("../controllers/orderController");
 
-// استخدمنا الاسم الصحيح isAdmin بدل admin
 const { protect, isAdmin } = require("../middleware/auth"); 
 
-// حماية المسارات
+// --- مسارات محتاجة تسجيل دخول (للعملاء) ---
+router.post("/", protect, createOrder); // <--- ضيف السطر ده
+
+// --- مسارات محتاجة تسجيل دخول + صلاحية أدمن ---
 router.use(protect);
 router.use(isAdmin);
 
