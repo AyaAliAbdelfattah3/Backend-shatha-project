@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 
-const UPLOAD_DIR = path.join(__dirname, "..", "..", "uploads", "products");
+// تحديد مسار الرفع (Vercel أو محلي)
 const uploadDir = process.env.VERCEL
   ? path.join("/tmp", "uploads", "products")
   : path.join(__dirname, "..", "..", "uploads", "products");
@@ -15,7 +15,7 @@ const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  destination: (req, file, cb) => cb(null, uploadDir), // <--- استخدمنا uploadDir هنا
   filename: (req, file, cb) => {
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     cb(null, `${unique}${path.extname(file.originalname)}`);
@@ -31,10 +31,6 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage, fileFilter, limits: { fileSize: MAX_FILE_SIZE } });
 
-// Runs after multer parses the multipart form. Copies the saved files' public
-// URLs into req.body.image / req.body.images so the existing express-validator
-// chains and controllers (which expect those as plain strings/array of
-// strings) don't need to know whether the request was JSON or a file upload.
 const attachUploadedImageUrls = (req, res, next) => {
   if (req.files?.image?.[0]) {
     req.body.image = `/uploads/products/${req.files.image[0].filename}`;
@@ -52,6 +48,7 @@ const uploadProductImages = [
   ]),
   attachUploadedImageUrls,
 ];
+
 // ==========================================
 // إعدادات رفع صورة البروفايل (Users)
 // ==========================================
@@ -77,7 +74,6 @@ const uploadUser = multer({
   limits: { fileSize: MAX_FILE_SIZE } 
 });
 
-// دالة بتحط مسار الصورة في req.body.avatar عشان الـ Controller يستخدمه
 const attachUserAvatarUrl = (req, res, next) => {
   if (req.file) {
     req.body.avatar = `/uploads/users/${req.file.filename}`;
@@ -86,7 +82,7 @@ const attachUserAvatarUrl = (req, res, next) => {
 };
 
 const uploadUserAvatar = [
-  uploadUser.single("avatar"), // بيستقبل حقل واحد اسمه avatar
+  uploadUser.single("avatar"),
   attachUserAvatarUrl,
 ];
 

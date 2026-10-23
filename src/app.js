@@ -22,10 +22,11 @@ app.use(async (req, res, next) => {
   }
 });
 
-// تحديد مجلد الـ uploads ليكون متوافقاً مع Vercel (/tmp) أو المحلي
-const uploadDir = path.join(__dirname, "..", "uploads");
+const uploadDir = process.env.VERCEL
+  ? path.join("/tmp", "uploads") 
+  : path.join(__dirname, "..", "uploads");
 
-// إنشاء المجلد إذا لم يكن موجوداً لتفادي خطأ ENOENT
+
 try {
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -44,7 +45,8 @@ if (process.env.NODE_ENV !== "test") {
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-data: { message: "E-commerce training API is running - V2" },  });
+    data: { message: "E-commerce training API is running - V2" },
+  });
 });
 
 app.use("/api", routes);
