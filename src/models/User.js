@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    // السطر الجديد بتاع الصورة
+    avatar: { 
+      type: String, 
+      default: "" 
+    },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

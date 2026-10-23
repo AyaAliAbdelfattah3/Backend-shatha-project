@@ -52,5 +52,42 @@ const uploadProductImages = [
   ]),
   attachUploadedImageUrls,
 ];
+// ==========================================
+// إعدادات رفع صورة البروفايل (Users)
+// ==========================================
+const USER_UPLOAD_DIR = process.env.VERCEL
+  ? path.join("/tmp", "uploads", "users")
+  : path.join(__dirname, "..", "..", "uploads", "users");
 
-module.exports = { uploadProductImages };
+if (!fs.existsSync(USER_UPLOAD_DIR)) {
+  fs.mkdirSync(USER_UPLOAD_DIR, { recursive: true });
+}
+
+const userStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, USER_UPLOAD_DIR),
+  filename: (req, file, cb) => {
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${unique}${path.extname(file.originalname)}`);
+  },
+});
+
+const uploadUser = multer({ 
+  storage: userStorage, 
+  fileFilter, 
+  limits: { fileSize: MAX_FILE_SIZE } 
+});
+
+// دالة بتحط مسار الصورة في req.body.avatar عشان الـ Controller يستخدمه
+const attachUserAvatarUrl = (req, res, next) => {
+  if (req.file) {
+    req.body.avatar = `/uploads/users/${req.file.filename}`;
+  }
+  next();
+};
+
+const uploadUserAvatar = [
+  uploadUser.single("avatar"), // بيستقبل حقل واحد اسمه avatar
+  attachUserAvatarUrl,
+];
+
+module.exports = { uploadProductImages, uploadUserAvatar };

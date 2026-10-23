@@ -156,4 +156,35 @@ const updatePassword = asyncHandler(async (req, res) => {
     message: "Password updated successfully",
   });
 });
-module.exports = { register, login, getMe, logout, updateProfile, updatePassword };
+// @route   PUT /api/auth/avatar
+// @access  Private
+const updateAvatar = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  // req.body.avatar جاي من الـ Middleware اللي إحنا عملناه
+  if (!req.body.avatar) {
+    throw new AppError("Please upload an image", 400);
+  }
+
+  user.avatar = req.body.avatar;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    data: { 
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        avatar: user.avatar, 
+        role: user.role 
+      } 
+    },
+  });
+});
+
+module.exports = { register, login, getMe, logout, updateProfile, updatePassword, updateAvatar };
