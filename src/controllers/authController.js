@@ -98,5 +98,62 @@ const logout = asyncHandler(async (req, res) => {
     },
   });
 });
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
 
-module.exports = { register, login, getMe, logout };
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  user.name = req.body.name || user.name;
+  user.email = req.body.email || user.email;
+  
+  // لو حقل التليفون موجود في الموديل بتاعك، هنحدثه. لو مش موجود، السطر ده مش هيأثر
+  if (req.body.phone) {
+    user.phone = req.body.phone;
+  }
+
+  const updatedUser = await user.save();
+
+  res.status(200).json({
+    success: true,
+    data: {
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone || "", // لو الحقل مش موجود بيرجع فاضي
+        role: updatedUser.role,
+      },
+    },
+  });
+});
+
+// @route   PUT /api/auth/password
+// @access  Private
+const updatePassword = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("+password");
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  // بنتأكد إن الباسورد القديم صح
+  const isMatch = await user.comparePassword(req.body.currentPassword);
+  
+  if (!isMatch) {
+    throw new AppError("Incorrect current password", 401);
+  }
+
+  // بنغير الباسورد
+  user.password = req.body.newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Password updated successfully",
+  });
+});
+module.exports = { register, login, getMe, logout, updateProfile, updatePassword };
