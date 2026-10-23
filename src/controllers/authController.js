@@ -24,6 +24,7 @@ const register = asyncHandler(async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+          avatar: user.avatar,
       },
       token,
     },
@@ -56,6 +57,7 @@ const login = asyncHandler(async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+         avatar: user.avatar,
       },
       token,
     },
@@ -75,6 +77,7 @@ const getMe = asyncHandler(async (req, res) => {
         email: req.user.email,
         role: req.user.role,
         createdAt: req.user.createdAt,
+          avatar: req.user.avatar, 
       },
     },
   });
@@ -126,6 +129,7 @@ const updateProfile = asyncHandler(async (req, res) => {
         email: updatedUser.email,
         phone: updatedUser.phone || "", // لو الحقل مش موجود بيرجع فاضي
         role: updatedUser.role,
+         avatar: updatedUser.avatar,
       },
     },
   });
